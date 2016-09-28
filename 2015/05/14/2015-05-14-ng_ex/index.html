@@ -1,0 +1,711 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="实验一：线性回归实验二：逻辑回归实验三：神经网络实验四：神经网络反向传播算法实验五：线性回归和修正欠拟合与过拟合实验六：支持向量机实验七：K-均值算法与PCA算法实验八：异常检测和推荐系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NG机器学习的编程实验">
+<meta property="og:url" content="http://yoursite.com/2015/05/14/2015-05-14-ng_ex/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="实验一：线性回归实验二：逻辑回归实验三：神经网络实验四：神经网络反向传播算法实验五：线性回归和修正欠拟合与过拟合实验六：支持向量机实验七：K-均值算法与PCA算法实验八：异常检测和推荐系统">
+<meta property="og:updated_time" content="2016-09-28T01:41:06.152Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="NG机器学习的编程实验">
+<meta name="twitter:description" content="实验一：线性回归实验二：逻辑回归实验三：神经网络实验四：神经网络反向传播算法实验五：线性回归和修正欠拟合与过拟合实验六：支持向量机实验七：K-均值算法与PCA算法实验八：异常检测和推荐系统">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/05/14/2015-05-14-ng_ex/"/>
+
+  <title> NG机器学习的编程实验 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Hexo</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                NG机器学习的编程实验
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-05-14T00:00:00+08:00" content="2015-05-14">
+              2015-05-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/机器学习/" itemprop="url" rel="index">
+                    <span itemprop="name">机器学习</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><a href="#ex1">实验一：线性回归</a><br><a href="#ex2">实验二：逻辑回归</a><br><a href="#ex3">实验三：神经网络</a><br><a href="#ex4">实验四：神经网络反向传播算法</a><br><a href="#ex5">实验五：线性回归和修正欠拟合与过拟合</a><br><a href="#ex6">实验六：支持向量机</a><br><a href="#ex7">实验七：K-均值算法与PCA算法</a><br><a href="#ex8">实验八：异常检测和推荐系统</a>  </p>
+<a id="more"></a>
+<p><a name="ex1"></a></p>
+<h2 id="实验一，Programming-Assignment-Linear-Regression"><a href="#实验一，Programming-Assignment-Linear-Regression" class="headerlink" title="实验一，Programming Assignment: Linear Regression"></a>实验一，Programming Assignment: Linear Regression</h2><p>这个实验就是用来熟悉一下提交的环境，另外在学习算法的各个过程都需要填几行关键程序，包括怎么求估价函数，怎么施行阶梯算法，怎么标准化数据等等，选做实验是两种特征的训练数据。</p>
+<h3 id="1-1-单位矩阵"><a href="#1-1-单位矩阵" class="headerlink" title="1.1 单位矩阵"></a>1.1 单位矩阵</h3><p>就是通过eye函数得一个单位矩阵。</p>
+<h3 id="1-2-计算估价函数J"><a href="#1-2-计算估价函数J" class="headerlink" title="1.2 计算估价函数J"></a>1.2 计算估价函数J</h3><p>（对不起我还不会写公式，回来更新）</p>
+<pre><code>J = sum((X * theta - y).^2) / (2*m);
+</code></pre><p>注意其中的.^，这是矩阵特有的操作符号，是矩阵的每一个对应的位置进行相应的运算。sum函数则是对矩阵求和。如果得出的结果是32.07就说明程序写的没问题，总之矩阵运算一定要注意的是x*y对应起来，否则如果出错还容易发现矩阵运算没有写错，如果恰好没有提示错误，得出的结果不对这种Bug会改的头破血流。</p>
+<h3 id="1-3-实现阶梯下降算法"><a href="#1-3-实现阶梯下降算法" class="headerlink" title="1.3 实现阶梯下降算法"></a>1.3 实现阶梯下降算法</h3><p>（公式仍然不会写）</p>
+<pre><code>theta(1) = theta(1) - alpha/m*sum(X*theta_backup-y);
+theta(2) = theta(2) - alpha/m*sum((X*theta_backup-y).*X(:,2));
+</code></pre><p>这只是单纯照着阶梯下降算法更新theta就好。值得注意的地方在上课的时候NG也说了，因为再更新theta的过程中会改变theta，所以我这里用了一个 <strong> theta_backup </strong> 对原来的theta进行了备份。这是一个特征的情况，下面还会有多种特征的简便写法（我第一次写的是循环^o^）。</p>
+<p>这个实验做到这里其实已差不多了，看到最后画出的图还是很开心的，虽然感觉上跟我并没有什么关系。</p>
+<h3 id="1-4-多类特征的附加实验"><a href="#1-4-多类特征的附加实验" class="headerlink" title="1.4 多类特征的附加实验"></a>1.4 多类特征的附加实验</h3><p>具体步骤跟单类特征差不多，值得注意的就是上文提到的更新theta的简便写法：</p>
+<pre><code>theta = theta - alpha / m * X&apos; * (X * theta - y); 
+</code></pre><p>X’是求X的转置矩阵。</p>
+<p>这是对数据标准化的语句，话说在pdf中间直接告诉要怎么做这样真的好嘛？连需要用的函数都给了。。。</p>
+<pre><code>mu = mean(X);
+sigma = std(X);
+X_norm = (X - repmat(mu, size(X,1) , 1))  ./ repmat(sigma,size(X,1),1);
+</code></pre><p>mean()函数是求平均值，具体自己做做实验就知道了，我就是一边儿一边儿在shell上面测试函数的用法，实用是学习最快的方法。std()函数是求标准差，然后完全按照pdf的描述就可以写下这条语句了（当然，我这么笨的人在shell上面测试了好久。。）。</p>
+<p>另外视频中也提到过，如果数据规模小的话，可以直接使用矩阵进行计算：</p>
+<pre><code>theta = pinv(X&apos;*X)*X&apos;*y;
+</code></pre><p>pinv()函数是求矩阵的逆，其实就是这个函数限制着这种干脆利索的方法的运行速度的。</p>
+<h3 id="1-5-总结"><a href="#1-5-总结" class="headerlink" title="1.5 总结"></a>1.5 总结</h3><p>总之，第一次实验叫做 <strong>worm exercises</strong> 也是有一定道理的。其实就是给 <strong>纸上得来</strong> 和 <strong>恭行</strong> 两件事建立个联系，知道这些算法是可以实现并且实际工作的，这对于我这样的笨蛋还是很重要的，学的时候总觉得隔层纱，到真的程序运行结果砸在脸上了，就能迷糊回来了。</p>
+<p><a name="ex2"></a></p>
+<h2 id="实验二，Logistic-Regression"><a href="#实验二，Logistic-Regression" class="headerlink" title="实验二，Logistic Regression"></a>实验二，Logistic Regression</h2><p>该实验总共包含两个小实验，一个是基础的逻辑回归实验，另一个是情况稍微复杂一点的实验，需要拟合的数据不是直线，当然其实如果没想那么多，跟着pdf做的话，几乎感觉不到区别，除了最后可视化的图不太一样。</p>
+<h3 id="2-1-将数据可视化"><a href="#2-1-将数据可视化" class="headerlink" title="2.1 将数据可视化"></a>2.1 将数据可视化</h3><p>可以看到，边界线大概是条直线。</p>
+<h3 id="2-2-实现"><a href="#2-2-实现" class="headerlink" title="2.2 实现"></a>2.2 实现</h3><p>经过前面的实验熏陶，已经知道这个实验实现部分肯定包括CostFunction，下降率，自己对数据进行预测等等，所有需要做的就是照着公式用octave实现出来就可，再次强调 <strong>矩阵的行和列</strong> 是验算式子写的对不对的有效的方法。<br>sigmoid函数很简单，不过注意的是这个函数接受的参数z，是矩阵，所以使用操作符号的时候一定要注意，该用“./”就要用。<br>求J的CostFunction，解析起来比较复杂，还是惯例，从里到外解析，注意运算符左右的矩阵的行和列，一般不会有什么问题，具体公式如下所示：</p>
+<pre><code>J = 1 / m * sum((-y).*log(sigmoid(X*theta)) - (1-y).*log(1-sigmoid(X*theta)));
+</code></pre><p>要注意的还是诸如“.*”这些操作符号。<br>而相关的gradient更新的公式如下：</p>
+<pre><code>grad = 1 / m * (X&apos; * (sigmoid(X*theta) - y));
+</code></pre><hr>
+<p>其实costfunction写完之后，需要修改的文件已经差不多没了，但是任务并没有结束，有了costfunction要如何更新theta呢？<br>这里是使用了octave里面提供的fminunc函数，通过这个函数算出对于CostFunction来说最优的参数。使用方式如下所示：</p>
+<pre><code>options = optimset(&apos;GradObj&apos;, &apos;on&apos;, &apos;MaxIter&apos;, 400);
+[theta, cost] = fminunc(@(t)(costFunction(t, X, y)), initial_theta, options);
+</code></pre><p>GradObj参数告诉fminunc使用gradient来计算需要返回theta和cost两个值，设置MaxIter最大步数为400。后面@(t)的写法是内部调用函数，同时提供theta和上文提到的options就可以等待fminunc算出结果了。并不用自己制定下降率之类的参数，大部分工作都由fminunc做了。</p>
+<h3 id="2-3-评估结果"><a href="#2-3-评估结果" class="headerlink" title="2.3 评估结果"></a>2.3 评估结果</h3><p>这里就是将已经得到的theta带进h函数就好，然后把所有的值在0.5以上的数据挑出来，将其y置1就好，使用find，很容易达到目的。</p>
+<pre><code>tmp = sigmoid(X*theta);
+finde = find(tmp&gt;=0.5);
+p(finde,1) = 1;
+</code></pre><p>然后就可以看到结果啦。</p>
+<h3 id="2-4-第二个实验：Regularized-logistic-regression"><a href="#2-4-第二个实验：Regularized-logistic-regression" class="headerlink" title="2.4 第二个实验：Regularized logistic regression"></a>2.4 第二个实验：Regularized logistic regression</h3><p>整个流程和第一个实验差不多，需要注意的是costFunction中计算J函数和gradient更新，对于j=0和j&gt;0是不一样的处理方式，另外在mapFeature函数中，使用了6次的多项式对数据进行拟合，可以看其拟合的手法，值得学习。<br>最后还给出了过度拟合与拟合度不够的边界值的图，可以看看。</p>
+<h3 id="2-5-总结"><a href="#2-5-总结" class="headerlink" title="2.5 总结"></a>2.5 总结</h3><p>整体来说，大部分程序不需要自己动手，只是部分函数自己填一下就可以了，像填空一样，但是做到现在，应该慢慢对整个体系有一些印象，回来是需要自己把整个过程都写出来的，提前做准备。</p>
+<p><a name="ex3"></a></p>
+<h2 id="实验三，神经网络算法"><a href="#实验三，神经网络算法" class="headerlink" title="实验三，神经网络算法"></a>实验三，神经网络算法</h2><p>这个实验使用了视频最后讲的识别手写数字作为数据输入，分别使用了多种特征的逻辑回归算法与神经网络算法进行实验，用来加强这两种算法的对比。实际运行时也会有个大概的印象，在特征较多时<strong>神经网络算法果然比逻辑回归要快</strong>。</p>
+<h3 id="3-1-多重特征的逻辑回归算法"><a href="#3-1-多重特征的逻辑回归算法" class="headerlink" title="3.1 多重特征的逻辑回归算法"></a>3.1 多重特征的逻辑回归算法</h3><p>这一小节就是对上一次实验的复习，如果上次实验costFunction和grad写的好的话，这次可以直接拿来用。但是果然还是再做一边比较好。<br>然后调用fmincg函数，比之前用的fminunc在处理大规模数据方面更有效率。<br>但是使用方法和fminunc几乎一样。<br>然后根据前面训练出来的theta对手写数字进行预测，一切都差不多。需要注意的就是这里使用max函数，得出的是每行最大的值（越大越正确），需要用一个两列的矩阵接受max函数的返回值，这样，第一列返回的是最大值，第二列返回的是最大值所在的位置。第二列才是我们需要的。第几个最大，预测就是几。</p>
+<h3 id="3-2-神经网络算法"><a href="#3-2-神经网络算法" class="headerlink" title="3.2 神经网络算法"></a>3.2 神经网络算法</h3><p>所有的theta已经算好，而且模型也给出了，是一个具有一个hidden层的模型，hidden层具有25个单元，输出层有10个单元。<br>那由于数据是有4000个特征的。所以可以预测theta1是25×401的矩阵，而theta2是10×26的矩阵。<br>于是有了theta之后，就可以一层一层的进行计算了，每层记得加上x0。<br>如下所示：</p>
+<pre><code>tmpX = [ones(m,1) X];
+layer1 = sigmoid(tmpX * Theta1&apos;);
+tmplayer1 = [ones(m,1) layer1];
+layer2 = sigmoid(tmplayer1 * Theta2&apos;);
+[a,p] = max(layer2,[],2);
+</code></pre><p>代码很简单，最后的max函数上面也讲过了，需要用一个两列的矩阵接受返回值，第二列就是我们的预测值。（他把10当作0了）</p>
+<p><a name="ex4"></a>  </p>
+<h2 id="实验四-神经网络与反向传播算法"><a href="#实验四-神经网络与反向传播算法" class="headerlink" title="实验四 神经网络与反向传播算法"></a>实验四 神经网络与反向传播算法</h2><p>本次实验主要实现了包括反向传播算法在内的比较完整的神经网络学习算法，由于这个算法比较复杂，实现起来步骤也比较多，所以经常容易出错，甚至这个算法后面还花了很大的篇幅给了一个校验算法，可能都觉得这算法偷摸在后台跑着很不让程序员放心。<br>本次实验将神经网络学习算法分为了两个部分，第一是前向传播，这部分和上个实验的相关部分相近，神经网络模型也是三层，Theta1是25 × 401，Theta2是10 × 26。在之后写代码的时候会经常遇到。</p>
+<h3 id="4-1-前向算法的实现"><a href="#4-1-前向算法的实现" class="headerlink" title="4.1 前向算法的实现"></a>4.1 前向算法的实现</h3><p>具体步骤和实验三类似，但是需要注意的是，这里输出层包含了十个单元，但是给出的y只是1-10的数字，需要将y转成位图存储，具体代码如下：</p>
+<pre><code>Y = [];
+E = eye(num_labels);
+for i=1:num_labels
+    Y0 = find(y==i);
+    Y(Y0,:) = repmat(E(i,:),size(Y0,1),1);
+end
+</code></pre><p>主要用了find函数与repmat函数，find函数前面有介绍，而repmat函数就是重复矩阵，所以这里又要说了，矩阵运算赛高～～</p>
+<p>这里的costFunction看起来非常复杂，需要算有三个求和符号的式子，而且就算是向量算式仍然还有两个求和符号，善用sum求和函数即可，复杂但是不难。对了，记得加上正则化的参数。</p>
+<p>learning部分，包括梯度导数都将在下一节介绍。</p>
+<h3 id="4-2-后向传播算法的实现"><a href="#4-2-后向传播算法的实现" class="headerlink" title="4.2 后向传播算法的实现"></a>4.2 后向传播算法的实现</h3><p>这一次实验的重点来了，梯度导数算起来步骤繁多，还是善用解构的方法，现处理和别的联系不大的模块，官方给的pdf也是先要处理sigmoid导数计算的小模块，pdf中已经给出了导数的式子，没事儿可以自己求个导～<br>将随机初始化处理了之后，就开始本次实验的重头戏，后向传播算法。官方pdf中显然也是非常不放心将步骤这么多的一个算法交给我们这些小朋友，所以步骤都给清楚了，而我在做的时候，也是老老实实重新看了一边视频，将重点重新复习了一下才开始动笔写的。好了严格按照步骤写就好。</p>
+<p><strong>step 1</strong><br>求a1，我们知道a1就是X中某一个样本特征，但是记得加上bias。由于要算偏差值和delta，所以需要再进行一边前向传播，分别算出a2，a3，z2，z3。</p>
+<p><strong>step 2</strong><br>算偏差值，err3单独算，然后按照给的公式一步一步算出err2就好。这里给出err2的计算式子。</p>
+<pre><code>err_2 = (Theta2&apos; * err_3);
+err_2 = err_2(2:end) .* sigmoidGradient(z_2);
+</code></pre><p>这里切记切记，z2是25 × 1，而err2是26 × 1，需要将bias干掉再算，当然如果在写代码的时候时刻记着现在矩阵计算的行和列，那就不会像我一样犯错误了。</p>
+<p><strong>step 3</strong><br>计算delta1和delta2。按照公式计算即可。</p>
+<pre><code>delta_2 = delta_2 + (err_3)*a_2&apos;;
+delta_1 = delta_1 + (err_2)*a_1&apos;;
+</code></pre><p><strong>step 4</strong><br>计算两个梯度导数，还是一样按照公式计算即可。</p>
+<pre><code>Theta1_grad = 1 / m * delta_1 + lambda / m * theta1_tmp;
+Theta2_grad = 1 / m * delta_2 + lambda / m * theta2_tmp;
+</code></pre><p>其实按照步骤分解，每一步视频都讲的挺清楚，注意代码编写正确即可。</p>
+<p>之后官方已经给了校验算法，自己跑一遍ex4就行。</p>
+<h3 id="4-3-关于隐藏层的可视化"><a href="#4-3-关于隐藏层的可视化" class="headerlink" title="4.3 关于隐藏层的可视化"></a>4.3 关于隐藏层的可视化</h3><p>这个额外的实验就一个问题：隐藏层究竟代表了什么？<br>其实咱们小时候学习的时候也是这样，学写字，大概长这个样子就是什么字儿，大概是这个样子是什么句子（还记得那个文字顺序一点儿都不影响阅读么？）。原来在看名家在争论白马非马的时候就跟着思考过这个概念，就是<strong>大概长这个样子</strong>用不是人话描述就叫模型，所谓马为天下之马而白马就这一匹而已。之所以这个算法叫神经网络算法，其实也是这样，每一个中间层可能就是对某一类事物的模型，每层递进的过程中都在一点儿一点儿完善这个模型。</p>
+<p><a name="ex5"></a></p>
+<h2 id="实验五-线性回归与修正过拟合与欠拟合"><a href="#实验五-线性回归与修正过拟合与欠拟合" class="headerlink" title="实验五 线性回归与修正过拟合与欠拟合"></a>实验五 线性回归与修正过拟合与欠拟合</h2><p>这个实验包含了三个实验，一个是通过学习选取比较好的线性回归模型，一个是通过观察学习曲线来修正过拟合与欠拟合，另一个是通过学习选取多项式特征模型，通过学习，选取表现较好的。</p>
+<h3 id="5-1-实现线性拟合"><a href="#5-1-实现线性拟合" class="headerlink" title="5.1 实现线性拟合"></a>5.1 实现线性拟合</h3><p>就是回顾之前的线性拟合的各种算法。按照pdf上写的CostFunction和梯度选择的公式写就行了。</p>
+<h3 id="5-2-学习曲线"><a href="#5-2-学习曲线" class="headerlink" title="5.2 学习曲线"></a>5.2 学习曲线</h3><p>分别计算训练组和交叉验证组的误差。为了获得不同的训练组集合，这里只是要求大小不同，所以这里使用了循环来依次改变训练组集合的大小，而交叉验证组单独给出。<br>这里使用trainLinearReg函数得出theta，然后使用上个实验写好的linearRegCostFunction函数求出各个误差，这里lambda为0。<br>从得出的训练集的大小与误差的曲线图来看，上个实验得出的线性拟合模型工作的很不错。在下一个实验就会给出使用多项式系数继续进行拟合的方法，通常来说那样做会拟合的更好。</p>
+<h3 id="5-3-使用多项式系数拟合"><a href="#5-3-使用多项式系数拟合" class="headerlink" title="5.3 使用多项式系数拟合"></a>5.3 使用多项式系数拟合</h3><p>如何表示多项式系数是一个问题，这里先预处理，算出所有可能的x的次方，算出的X_poly是一个m×p的矩阵，这个矩阵每一列都是一个x的次方，从x的1次方到x的p次方。在polyFeatures.m中进行计算就好。很简单。<br>然后次方数p根据学习选择之后，最后一个问题就是确定lambda。同样如何确定lambda呢？这里还是采用的循环的方式，题目提供了一个lambda可能的集合：{0, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10}。可以看到，这就是原来讲过的lambda取值的方式，ng经常这样取，然后根据训练集与交叉验证集的方式选择出比较恰当的lambda。</p>
+<h3 id="5-4-之后的事情"><a href="#5-4-之后的事情" class="headerlink" title="5.4 之后的事情"></a>5.4 之后的事情</h3><p><strong>事情远没有结束。</strong><br>首先要使用剩下的测试集来验证lambda是否选择适当。而test就是做这个事情的。<br>而前面选择训练集的时候，并没有做随机化，是依次从前多少个中取得的训练集，这样做会使得学习的结果更加局部化，只是满足局部的训练集，所以这里应该是随机化选择训练集。不过也可以理解，如果是随机化选择训练集，那么结果就没办法评分了。但是这儿还是应该随机化选择的。</p>
+<p><a name="ex6"></a></p>
+<h2 id="实验六-支持向量机"><a href="#实验六-支持向量机" class="headerlink" title="实验六 支持向量机"></a>实验六 支持向量机</h2><p>这个实验一共包含了两个实验，一个是支持向量机的实验，包含了三个dataset，第一个是线性的后两个个是非线性的。第二个实验是在垃圾邮件分类方面应用支持向量机进行计算。</p>
+<h3 id="6-1-高斯核函数"><a href="#6-1-高斯核函数" class="headerlink" title="6.1 高斯核函数"></a>6.1 高斯核函数</h3><p>实现高斯核函数，计算某点和l之间距离的时候可以通过向量进行快速计算。</p>
+<h3 id="6-2-确定两个常数"><a href="#6-2-确定两个常数" class="headerlink" title="6.2 确定两个常数"></a>6.2 确定两个常数</h3><p>确定C与sigma这两个在高斯核函数中的常数。通过使用支持向量机进行训练，并对交叉验证组进行验证，在一定范围内选出比较合适的C和sigma即可。<br>首先，C和sigma的范围怎么算，这里提示说仍然使用从0.01依次乘以3进行选取，所以为了程序好写，则需要将可能的C和sigma放在向量中。然后就对不同的C和sigma进行排列组合，训练之后算出交叉验证组的值，选择误差最小的。<br>Octave里面有svm相关的函数，但是pdf中稍微提了一句，并没有告诉具体的用法，我也是在ex6中找到的，然后查了查资料，然后把这个函数写出来了，如下所示：</p>
+<pre><code>model = svmTrain(X, y, C_vec(i), @(x1, x2) gaussianKernel(x1, x2, sigma_vec(j)));
+</code></pre><p>这中间C_vec和sigma_vec两个向量就是C和sigma的取值范围。<br>算出model之后，需要利用model对交叉验证组进行对照，然后算出误差。这里不再贴代码。<br>之后选择误差最小的即可。其中可能要用到ind2sub函数，可以自行百度。</p>
+<h3 id="6-3-垃圾邮件分类"><a href="#6-3-垃圾邮件分类" class="headerlink" title="6.3 垃圾邮件分类"></a>6.3 垃圾邮件分类</h3><p>实验已经对邮件的预处理，可以看看中间都有什么处理，思路还是很重要的，但是这里主要讲实验。<br>不过其实实验也没啥讲的，在预处理之后，需要完成的就是对单个单词的比对，而且敏感词表也已经给了，如果存在这个敏感词则在一个很长很长的向量中标注一下即可。<br>然后万事俱备，（纳尼，我啥都没干呢！）就可以使用svm算法对垃圾邮件进行分类了。<br>之后给的两个附加实验倒是稍微有意思一点，一个就是用现有的model测试自己的邮件，第二个就更彻底一点儿，从SpamAssassin Public Corpus上面下到一些可以作为实验数据的东西，然后自己重新组织程序，通过processEmail和emailFeatures两个函数获得自己的X和y，然后进行训练。记得把实验数据分成训练组、交叉验证组和测试组。</p>
+<p><a name="ex7"></a></p>
+<h2 id="实验七-K均值算法与PCA"><a href="#实验七-K均值算法与PCA" class="headerlink" title="实验七 K均值算法与PCA"></a>实验七 K均值算法与PCA</h2><p>本次实验肯定分为两部分，一部分K均值，一部分是PCA。而K均值的实验中，一部分是有一个可以可视化的数据，可以追踪聚类中心的移动情况，另一部分就是使用K均值对图像进行压缩。而PCA则是一次普通的实验。</p>
+<h3 id="7-1-K均值的实现"><a href="#7-1-K均值的实现" class="headerlink" title="7.1 K均值的实现"></a>7.1 K均值的实现</h3><p>K均值一共需要迭代的步骤是两步，第一步是给每个点找到距离最近的聚类中心，第二步是计算每个聚类的平均值并以此更新聚类中心。<br>找到最近的聚类中心，无非是把所有的点枚举一遍，然后计算每个点到所有聚类中心的距离，挑出最小的，将每个点的聚类索引更新，这个过程如果用矩阵去写会非常好写。关键步骤如下：</p>
+<pre><code>tmp(j) = sum((centroids(j,:)- X(i,:)).^2);
+</code></pre><p>其中i是枚举点的循环变量，j是枚举聚类中心的循环变量。利用矩阵将距离计算出来。</p>
+<p>第二步流程更为简单，将每个聚类中的所有点算出均值即可。由于已经有了idx，表示每个点所属的聚类中心，那么利用find函数首先找到属于同一聚类中心的点，然后进行均值求解即可。关键步骤如下：</p>
+<pre><code>centroids(i,:) = mean(X(find(idx==i),:));
+</code></pre><h3 id="7-2-随机初始化与利用K均值算法压缩图像"><a href="#7-2-随机初始化与利用K均值算法压缩图像" class="headerlink" title="7.2 随机初始化与利用K均值算法压缩图像"></a>7.2 随机初始化与利用K均值算法压缩图像</h3><p>这一节虽然没有需要提交的代码，但是这儿提供了一个随机初始化的方法，和将图像压缩的方法，可以应用在别的项目中。</p>
+<h3 id="7-3-PCA"><a href="#7-3-PCA" class="headerlink" title="7.3 PCA"></a>7.3 PCA</h3><p>这一节课上老师讲的特别清楚，包括怎么算，为什么这么算，还有在octave中有什么函数方便算。比如求PCA的函数，先选出sigma，然后用svd函数算出U，S，V。其中，U，S在课上讲过用处，U就是矩阵的特征向量，S可以用来选取K。选出矩阵U之后，就可以按照K进行映射了，进行一次矩阵乘法即可。恢复数据是一样的，这个实验主要还是用来熟悉流程，看到一个一个例子在机器上运行，感觉很踏实就好。</p>
+<h3 id="7-4-PCA应用"><a href="#7-4-PCA应用" class="headerlink" title="7.4 PCA应用"></a>7.4 PCA应用</h3><p>之后给了两个应用PCA的例子，一个是脸部的特征的降维，从1024维降到100维。第二个实验是利用PCA进行可视化，将3维的降到2维的。有兴趣可以看看代码，因为这个代码的基础部件还是咱们自己写的。</p>
+<p><a name="ex8"></a></p>
+<h2 id="实验八-异常检测与推荐系统"><a href="#实验八-异常检测与推荐系统" class="headerlink" title="实验八 异常检测与推荐系统"></a>实验八 异常检测与推荐系统</h2><p>本次实验包括了两个系统，异常检测和一个电影推荐系统。还是老样子，每个系统都被拆成若干步骤，按照递归的方法递归到最先要解决的问题，然后依次递推回来，拆分了这个实验，这种将大目标拆成小目标的方法还是非常的规矩。相信到了这里，每个人都很熟悉，就简单写了。</p>
+<h3 id="8-1-计算高斯分布的参数"><a href="#8-1-计算高斯分布的参数" class="headerlink" title="8.1 计算高斯分布的参数"></a>8.1 计算高斯分布的参数</h3><p>这儿我突然脑子短路了，本来列是特征的个数，行是训练集，我活生生弄反了。本身没多大难度，按照公式写就好了，相信之前写CostFunction的人在这儿都会开开心心的顺手写完了。</p>
+<h3 id="8-2-选择epsilon、计算F1的值"><a href="#8-2-选择epsilon、计算F1的值" class="headerlink" title="8.2 选择epsilon、计算F1的值"></a>8.2 选择epsilon、计算F1的值</h3><p>乍一看好像要算的很多，但是都是互相依赖的关系，算F1，就要算测准率和召回率，算这俩率就要把TruePositive等等那四个全算出来，而算这几个就要知道预测值和真实值的对比，真实值就是yval，而预测值的p函数已经给你了，那事儿就简单了。利用p函数和epsilon的大小关系算出预测值，然后算出TP、FP、FN，然后算出测准率和召回率，然后算出F1，然后挑出最大的F1，over。<br>说起来复杂，但是中间连个弯儿都不带拐的。<br>代码就不给了。</p>
+<h3 id="8-3-推荐系统"><a href="#8-3-推荐系统" class="headerlink" title="8.3 推荐系统"></a>8.3 推荐系统</h3><p>如果单单是为了做实验，这个实验非常没啥做的，线性回归什么样儿，这儿基本就是什么样儿，除了要对阵矩阵的行列值。但是按照课上讲的顺序，回顾一下整个推荐系统的实现顺序其实是很有用的，看看提供的代码，想想流程。再看看人家给的代码单元测试做的多好，所以说<strong>写程序之前先写单元测试是个好习惯</strong>。</p>
+<h2 id="更新历史"><a href="#更新历史" class="headerlink" title="更新历史"></a>更新历史</h2><p>实验一更新（2015.05.14 21：28）<br>实验二更新（2015.05.20 09：50）<br>实验三更新（2015.05.27 09：23）<br>实验四更新（2015.06.09 09：09）<br>实验五更新（2015.06.29 09：17）<br>实验六更新（2015.07.11 15：17）<br>实验七更新（2015.07.12 12：52）<br>实验八更新（2015.07.17 20：45）  </p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/05/12/2015-05-12-hello/" rel="next" title="你好，旅行者～">
+                <i class="fa fa-chevron-left"></i> 你好，旅行者～
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/06/11/2015-06-11-Security_Protocols/" rel="prev" title="安全协议读书笔记（一）">
+                安全协议读书笔记（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="K.K-qinsky31" />
+          <p class="site-author-name" itemprop="name">K.K-qinsky31</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实验一，Programming-Assignment-Linear-Regression"><span class="nav-number">1.</span> <span class="nav-text">实验一，Programming Assignment: Linear Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-单位矩阵"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 单位矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-计算估价函数J"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 计算估价函数J</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-实现阶梯下降算法"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 实现阶梯下降算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-多类特征的附加实验"><span class="nav-number">1.4.</span> <span class="nav-text">1.4 多类特征的附加实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-总结"><span class="nav-number">1.5.</span> <span class="nav-text">1.5 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验二，Logistic-Regression"><span class="nav-number">2.</span> <span class="nav-text">实验二，Logistic Regression</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-将数据可视化"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 将数据可视化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-实现"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-评估结果"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 评估结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-第二个实验：Regularized-logistic-regression"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 第二个实验：Regularized logistic regression</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-总结"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验三，神经网络算法"><span class="nav-number">3.</span> <span class="nav-text">实验三，神经网络算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-多重特征的逻辑回归算法"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 多重特征的逻辑回归算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-神经网络算法"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 神经网络算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验四-神经网络与反向传播算法"><span class="nav-number">4.</span> <span class="nav-text">实验四 神经网络与反向传播算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-前向算法的实现"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 前向算法的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-后向传播算法的实现"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 后向传播算法的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-关于隐藏层的可视化"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 关于隐藏层的可视化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验五-线性回归与修正过拟合与欠拟合"><span class="nav-number">5.</span> <span class="nav-text">实验五 线性回归与修正过拟合与欠拟合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-实现线性拟合"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 实现线性拟合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-学习曲线"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 学习曲线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-使用多项式系数拟合"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 使用多项式系数拟合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-之后的事情"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 之后的事情</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验六-支持向量机"><span class="nav-number">6.</span> <span class="nav-text">实验六 支持向量机</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-高斯核函数"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 高斯核函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-确定两个常数"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 确定两个常数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-垃圾邮件分类"><span class="nav-number">6.3.</span> <span class="nav-text">6.3 垃圾邮件分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验七-K均值算法与PCA"><span class="nav-number">7.</span> <span class="nav-text">实验七 K均值算法与PCA</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-K均值的实现"><span class="nav-number">7.1.</span> <span class="nav-text">7.1 K均值的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-随机初始化与利用K均值算法压缩图像"><span class="nav-number">7.2.</span> <span class="nav-text">7.2 随机初始化与利用K均值算法压缩图像</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-PCA"><span class="nav-number">7.3.</span> <span class="nav-text">7.3 PCA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-4-PCA应用"><span class="nav-number">7.4.</span> <span class="nav-text">7.4 PCA应用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验八-异常检测与推荐系统"><span class="nav-number">8.</span> <span class="nav-text">实验八 异常检测与推荐系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-计算高斯分布的参数"><span class="nav-number">8.1.</span> <span class="nav-text">8.1 计算高斯分布的参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-选择epsilon、计算F1的值"><span class="nav-number">8.2.</span> <span class="nav-text">8.2 选择epsilon、计算F1的值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-推荐系统"><span class="nav-number">8.3.</span> <span class="nav-text">8.3 推荐系统</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新历史"><span class="nav-number">9.</span> <span class="nav-text">更新历史</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">K.K-qinsky31</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

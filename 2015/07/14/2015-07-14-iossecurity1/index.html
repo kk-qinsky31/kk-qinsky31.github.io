@@ -1,0 +1,651 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：
+
+逆向某些App。
+Hook与注入实验。
+ROP攻击实验。
+越狱开发。
+
+有兴趣探讨实验或提供实验主题请联系qinsky31@gmail.com。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS安全实验记录（一）：搭建环境与所需工具">
+<meta property="og:url" content="http://yoursite.com/2015/07/14/2015-07-14-iossecurity1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：
+
+逆向某些App。
+Hook与注入实验。
+ROP攻击实验。
+越狱开发。
+
+有兴趣探讨实验或提供实验主题请联系qinsky31@gmail.com。">
+<meta property="og:updated_time" content="2016-09-28T01:41:06.152Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="iOS安全实验记录（一）：搭建环境与所需工具">
+<meta name="twitter:description" content="会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：
+
+逆向某些App。
+Hook与注入实验。
+ROP攻击实验。
+越狱开发。
+
+有兴趣探讨实验或提供实验主题请联系qinsky31@gmail.com。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2015/07/14/2015-07-14-iossecurity1/"/>
+
+  <title> iOS安全实验记录（一）：搭建环境与所需工具 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Hexo</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-commonweal">
+          <a href="/404.html" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />
+            
+            公益404
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                iOS安全实验记录（一）：搭建环境与所需工具
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-14T00:00:00+08:00" content="2015-07-14">
+              2015-07-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ios安全/" itemprop="url" rel="index">
+                    <span itemprop="name">ios安全</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：</p>
+<ol>
+<li>逆向某些App。</li>
+<li>Hook与注入实验。</li>
+<li>ROP攻击实验。</li>
+<li>越狱开发。</li>
+</ol>
+<p>有兴趣探讨实验或提供实验主题请联系<strong>qinsky31@gmail.com</strong>。</p>
+<a id="more"></a>
+<p>今天，主要讲一下我这里搭建的环境，以及使用工具。</p>
+<h3 id="Theos"><a href="#Theos" class="headerlink" title="Theos"></a>Theos</h3><p>这是一款越狱开发的工具包，与iOSOpenDev不同，这个工具包并不那么的<strong>完善</strong>，而逆向工程中很多东西无法自动化，所以使用这个不怎么完善的工具包可以方便对整个逆向的过程理解更加清晰明确。</p>
+<h3 id="ldid"><a href="#ldid" class="headerlink" title="ldid"></a>ldid</h3><p>签名用，在MAC上放一个也可以，在iPhone上放一个也可以。</p>
+<h3 id="CydiaSubstrate"><a href="#CydiaSubstrate" class="headerlink" title="CydiaSubstrate"></a>CydiaSubstrate</h3><p>著名的越狱开发的基础包，主要提供了三种功能，使用简单方便：Hook，Loader，Safemode。Hook和Loader都不陌生，可以对目标进程进行Hook和注入。Safemode是CydiaSubstrate引入的专为越狱开发而做的，因为Loader使用的dylib载入第三方lib的，如果第三方lib（也就是自己的lib）出错的话，会让被注入的进程崩溃。而这个safemode可以识别SIGTRAP、SIGABRT、SIGILL、SIGBUS、SIGSEGV、SIGSYS六个信号，一旦被触发就进入safemode，禁用所有第三方lib，方便调试。</p>
+<h3 id="Cycript"><a href="#Cycript" class="headerlink" title="Cycript"></a>Cycript</h3><p>一个可以进行运行在MTerminal的脚本语言，很方便的就注入进程，查看某函数的运行结果，某个中间结果都非常方便。</p>
+<h3 id="LLDB和debugserver"><a href="#LLDB和debugserver" class="headerlink" title="LLDB和debugserver"></a>LLDB和debugserver</h3><p>由于笔者研究方向与LLVM相关，所以老老实实的用lldb进行调试了。</p>
+<h3 id="OpenSSH"><a href="#OpenSSH" class="headerlink" title="OpenSSH"></a>OpenSSH</h3><p>方便手机远程调试。</p>
+<h3 id="usbmuxd"><a href="#usbmuxd" class="headerlink" title="usbmuxd"></a>usbmuxd</h3><p>一个将USB协议抽象成为TCP协议的服务，可以使用USB插口进行调试。</p>
+<h3 id="MTerminal"><a href="#MTerminal" class="headerlink" title="MTerminal"></a>MTerminal</h3><p>iOS上的终端。</p>
+<h3 id="syslogd"><a href="#syslogd" class="headerlink" title="syslogd"></a>syslogd</h3><p>记录系统日志。进行越狱开发的时候syslog是不可或缺的帮手。</p>
+<h3 id="otool"><a href="#otool" class="headerlink" title="otool"></a>otool</h3><p>不用安装，可以查看程序依赖的动态库。</p>
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><p>按照惯例，写一个helloworld的程序，放在手机里执行作为开始。要在MAC上编译一个可以在iOS上执行的C程序，需要编译器，也需要指定SDK，下面分别进行介绍。</p>
+<h3 id="编译器"><a href="#编译器" class="headerlink" title="编译器"></a>编译器</h3><p>原来交叉编译环境都是arm-开头，中间应该有关键字llvm-gcc，我找了半天，毛都没有，后面去Xcode更新日志上看到，从Xcode开始编译器都指定为clang，不再使用llvm-gcc，这一头包。后来在StackOverflow上面找到了一种方法，就是执行命令：</p>
+<pre><code>xcrun -f --sdk iphoneos clang
+</code></pre><p>xcrun是Xcode中command line tool的工具，这个命令可以找到Xcode使用的sdk包的地址。而iphoneos则是指定的平台，这样就找到了clang的位置。不过，这里clang是一个通用的编译器，需要指定平台和SDK包才行。</p>
+<h3 id="SDK"><a href="#SDK" class="headerlink" title="SDK"></a>SDK</h3><p>SDK包的位置倒是好找一点，直接find搜所有的SDKs找到相应SDK的位置即可。我要在iPhone执行我的helloworld，那么就选iPhone的SDK，这里SDK的版本是8.4。</p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>运行命令：</p>
+<pre><code>clang --target=arm64-apple-darwin14.4.0 -isysroot $SDKs
+</code></pre><p>这中间target是指定平台，这里我用的iPhone6p，所以平台是arm64，isysroot指定的是SDK的文件，这里是我自己设的变量，需要改成自己的目录。</p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>通过命令scp放在手机上，用ldid签名然后就可以运行了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/13/2015-07-13-usbmuxd/" rel="next" title="usbmuxd服务及应用">
+                <i class="fa fa-chevron-left"></i> usbmuxd服务及应用
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/16/2015-07-16-crest/" rel="prev" title="crest的安装与使用">
+                crest的安装与使用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.gif"
+               alt="K.K-qinsky31" />
+          <p class="site-author-name" itemprop="name">K.K-qinsky31</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">9</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Theos"><span class="nav-number">1.</span> <span class="nav-text">Theos</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ldid"><span class="nav-number">2.</span> <span class="nav-text">ldid</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CydiaSubstrate"><span class="nav-number">3.</span> <span class="nav-text">CydiaSubstrate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cycript"><span class="nav-number">4.</span> <span class="nav-text">Cycript</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LLDB和debugserver"><span class="nav-number">5.</span> <span class="nav-text">LLDB和debugserver</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OpenSSH"><span class="nav-number">6.</span> <span class="nav-text">OpenSSH</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#usbmuxd"><span class="nav-number">7.</span> <span class="nav-text">usbmuxd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MTerminal"><span class="nav-number">8.</span> <span class="nav-text">MTerminal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#syslogd"><span class="nav-number">9.</span> <span class="nav-text">syslogd</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#otool"><span class="nav-number">10.</span> <span class="nav-text">otool</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hello-World"><span class="nav-number"></span> <span class="nav-text">Hello World</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编译器"><span class="nav-number">1.</span> <span class="nav-text">编译器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SDK"><span class="nav-number">2.</span> <span class="nav-text">SDK</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编译"><span class="nav-number">3.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#运行"><span class="nav-number">4.</span> <span class="nav-text">运行</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">K.K-qinsky31</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
