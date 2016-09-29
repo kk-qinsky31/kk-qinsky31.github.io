@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>K.K的博客</title>
+  <subtitle>专注分享</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="http://yoursite.com/"/>
+  <updated>2016-09-28T03:47:45.212Z</updated>
+  <id>http://yoursite.com/</id>
+  
+  <author>
+    <name>K.K-qinsky31</name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>KLEE平台搭建与实验</title>
+    <link href="http://yoursite.com/2015/11/08/2015-11-08-klee/"/>
+    <id>http://yoursite.com/2015/11/08/2015-11-08-klee/</id>
+    <published>2015-11-07T16:00:00.000Z</published>
+    <updated>2016-09-28T03:47:45.212Z</updated>
+    
+    <content type="html"><![CDATA[<p>由于项目的需要，研究了一段时间符号执行的平台KLEE，由于我的主要工作是在LLVM中间语言上的，而KLEE的工作也是建立在LLVM上的，所以KLEE就成为做实验的重要工具。<br><a id="more"></a></p>
+<h3 id="KLEE-简单介绍"><a href="#KLEE-简单介绍" class="headerlink" title="KLEE 简单介绍"></a>KLEE 简单介绍</h3><p>KLEE是一个建立在EXE平台的基础上的一个符号执行平台，由斯坦福大学开发，使用STP作为约束求解器，依靠着在约束求解阶段的大范围的优化，使得整个符号执行过程较为快捷。KLEE工作在LLVM的架构上，以LLVM的中间语言bytecode作为输入，完成路径覆盖以及测试用例的生成。</p>
+<h3 id="实验环境"><a href="#实验环境" class="headerlink" title="实验环境"></a>实验环境</h3><p>Ubuntu 14.04<br>内核版本：3.16</p>
+<h3 id="平台搭建"><a href="#平台搭建" class="headerlink" title="平台搭建"></a>平台搭建</h3><p>使用Docker进行快速部署，KLEE官方有在维护一个Docker的镜像，该镜像在Ubuntu中搭建了LLVM和KLEE的平台。安装Docker的过程官网都有，本来Docker也推荐在Ubuntu中进行。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">docker pull klee/klee</div></pre></td></tr></table></figure></p>
+<p>把klee的镜像拉过来就好，然后就可以开始进行符号执行的测试了。<br>其中记得挂载一个本系统的目录，这样可以方便的对本系统的文件进行编译和符号执行了。</p>
+<pre><code>-v /本机目录:/在镜像中的目录
+</code></pre><p>然后就可以开始实验了。</p>
+<h3 id="实验过程"><a href="#实验过程" class="headerlink" title="实验过程"></a>实验过程</h3><p>####一个简单的程序####<br>对着一个有三条执行路径的程序进行符号执行程序如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">get_sign</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</div><div class="line">	<span class="keyword">if</span> (x == <span class="number">0</span>)</div><div class="line">		<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"></div><div class="line">  	<span class="keyword">if</span> (x &lt; <span class="number">0</span>)</div><div class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">	<span class="keyword">else</span> </div><div class="line">		<span class="keyword">return</span> <span class="number">1</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>使用命令：</p>
+<pre><code>clang -emit-llvm -g -c 1get_sign.c -o test.bc
+klee test.bc 
+</code></pre><p>可以看到运行结果：</p>
+<pre><code>E: output directory is &quot;/home/klee/exm/getsign/klee-out-0&quot;
+
+KLEE: done: total instructions = 30
+KLEE: done: completed paths = 3
+KLEE: done: generated tests = 3
+</code></pre><p>然后使用klee的test工具查看testcase：</p>
+<pre><code>ktest-tool --write-ints ./klee-last/test000001.ktest 
+</code></pre><p>结果为：</p>
+<pre><code>ktest file : &apos;./klee-last/test000001.ktest&apos;
+args       : [&apos;test.bc&apos;]
+num objects: 1
+object    0: name: b&apos;a&apos;
+object    0: size: 4
+object    0: data: -2147483648
+</code></pre><p>接下来剩下两个testcase，a的取值分别为：16843009,0<br>全部覆盖了程序的执行路径。</p>
+<p>####测试一个简单的正则表达式匹配程序####</p>
+<p><a href="http://klee.github.io/resources/Regexp.c.html" target="_blank" rel="external">源程序</a><br>该程序是一个简单的正则表达式匹配的程序，本次实验是通过使用该程序对字符串”hello”进行匹配，然后进行符号执行。</p>
+<p>同样进行编译执行之后，显示的结果如下：</p>
+<pre><code>KLEE: output directory is &quot;/home/klee/exm/regue/klee-out-1&quot;
+KLEE: ERROR: /home/klee/exm/regue/./2regue.c:22: memory error: out of bound pointer
+KLEE: NOTE: now ignoring this error at this location
+KLEE: ERROR: /home/klee/exm/regue/./2regue.c:24: memory error: out of bound pointer
+KLEE: NOTE: now ignoring this error at this location
+
+KLEE: done: total instructions = 4598603
+KLEE: done: completed paths = 7438
+KLEE: done: generated tests = 16
+</code></pre><p>可以看到全部路径覆盖为7438条，而生成测试用例一共16组，值得注意的是，中间出现了两个ERROR，这个ERROR可能就是潜在的漏洞所在了。（但是这次并不是）<br>这次其实是假设正则表达式的时候，字符串结尾必须是’/0’否则就会出错，这样在源程序中，使用语句klee_assume即可。<br>然后发现这次已经没有之前的错误了，结果如下：</p>
+<pre><code>KLEE: output directory is &quot;/home/klee/exm/regue/klee-out-3&quot;
+
+KLEE: done: total instructions = 4016680
+KLEE: done: completed paths = 5895
+KLEE: done: generated tests = 15
+</code></pre><p>以上，就是该实验。</p>
+<p>####一个迷宫游戏####<br>这个迷宫游戏的地图如下所示：</p>
+<pre><code>+-+---+---+
+|X|     |#|
+| | --+ | |
+| |   | | |
+| +-- | | |
+|     |   |
++-----+---+
+</code></pre><p>从X开始移动，#是目的地。<br>这次我们使用klee找出可能的通路。<a href="http://pastebin.com/6wG5stht" target="_blank" rel="external">源代码</a><br>首先标注输入，使用</p>
+<pre><code>klee_make_symbolic(program,ITERS,&quot;program&quot;);
+</code></pre><p>代替</p>
+<pre><code>read(0,program,ITERS);
+</code></pre><p>然后将成功走出迷宫的输出标注出来：</p>
+<pre><code>printf (&quot;You win!\n&quot;);
+klee_assert(0);
+</code></pre><p>最后在前面引入klee.h即可，同样进行编译和符号执行。<br>把testcase中带err字样的找出来，使用类似命令：</p>
+<pre><code>ll klee_last/ |grep -A2 -B2 err
+</code></pre><p>然后发现只有一个结果：</p>
+<pre><code>test000135.ktest
+test000136.ktest
+test000137.assert.err
+test000137.ktest
+test000137.pc
+</code></pre><p>查看结果发现解为：sddwddddsddw，将其输入源程序运行，发现竟然从”墙“中穿过，查看源代码发现原来这里有两面墙并没有判断，被klee找到了。</p>
+<p>但是为什么没有正确的运行结果呢？正确的运行结果应该是唯一的。<br>原来在程序中引发一个err可能有多种输出，但是在klee中只算作一种，如果想看到所有的解，则需要如下进行：</p>
+<pre><code>klee -emit-all-errors test.bc
+</code></pre><p>这样再次将testcase筛选出来就有四组结果了，四组结果分别是：</p>
+<pre><code>sddwddddsddw
+ssssddddwwaawwddddsddw
+sddwddddssssddwwww
+ssssddddwwaawwddddssssddwwww
+</code></pre><p>其中最后一组是正确解，其他的都是穿墙解。</p>
+<p>####测试内核命令####<br>由于KLEE是以LLVM中间语言为对象进行的，那么只要是能够编译成LLVM的都能够使用KLEE进行符号执行。譬如Unix的一些内核命令，像chmod，cat，mkdir等等，从GNU上下载相应版本的coreutils进行测试即可。下面是klee发现的一些使得程序崩溃的输入，这些都可能是潜在的漏洞，版本号是coreutils 6.10。</p>
+<pre><code>paste -d\\ abcdefghijklmnopqrstuvwxyz
+mkdir -Z a b
+mkfifo -Z a b
+seq -f %0 1
+</code></pre><p>###未来的工作###<br><strong>广度：</strong>未来可以继续测试像busybox，minix等比较简单的系统的系统工具。有将web编译成LLVM的前端就可以去测试web的程序。<br><strong>KLEE加强：</strong>在运行Unix的工具的时候大概一个小时一个程序，但是涉及路径爆炸的问题，所需的时间会几何倍数向上增长，所以简化符号执行的流程，缩短时间是一个非常重要的研究方向。符号执行的并行化与提取程序摘要都是比较好的研究方向。<br><strong>漏洞定位：</strong>在测试的过程中，其实会发生非常多的err，但并不是每个err都会引发漏洞，如何自动化的定位和测试这些漏洞，也是一个比较好的研究方向。  </p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;由于项目的需要，研究了一段时间符号执行的平台KLEE，由于我的主要工作是在LLVM中间语言上的，而KLEE的工作也是建立在LLVM上的，所以KLEE就成为做实验的重要工具。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="程序分析" scheme="http://yoursite.com/categories/%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>CLANG、LLVM实验（一）</title>
+    <link href="http://yoursite.com/2015/07/24/2015-07-24-llvm/"/>
+    <id>http://yoursite.com/2015/07/24/2015-07-24-llvm/</id>
+    <published>2015-07-23T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>由于项目需要，研究了一段时间的LLVM，现将已经做过的实验总结如下。<br>实验环境：<br>Clang 3.2<br>LLVM 3.2<br>Ubuntu 14.04 64bit<br><a id="more"></a></p>
+<h3 id="Part-1-基础"><a href="#Part-1-基础" class="headerlink" title="Part 1 基础"></a>Part 1 基础</h3><p>CLANG是编译器前端，LLVM是编译器后端，这是一个典型的现代编译器的模型，通过中间语言分割，使得前端和后端分别只做自己的事情。<br>首先按照官网的get start进行编译和安装，因为是使用cmake进行编译的，方便各个studio进行整合和编辑，比如Xcode，Visual Stdio等。<br>然后对目录熟悉一下，为了使编译不污染源代码，所以build和source分离。<br>在安装的过程中可以知道clang是作为一个llvm的tool放进去的。现对常用目录总结如下：</p>
+<pre><code>source:
+./example/
+    BrainF, ExceptionDemo, Fibonacci, HowToUseJIT, Kaleidoscope, ModuleMaker, Ocaml-Kaleidoscope，这是LLVM给的样例程序
+./test/：LLVM有健全的自测。
+./tools/
+    clang, llvm-*，包括了clang和以llvm开头的工具，包括llvm-dis等等常用命令
+        ./clang/
+            ./examples/：在clang的目录中也有这么几个examples，之后会有其中名叫PrintFunctionName的样例分析
+            ./lib/：里面有各种clang的工具，可以发现很多在clang前端跑的词法分析和语法分析的lib都在这里面。
+./lib/：LLVM的lib，包括LLVM自己写的pass都在这里面，可以说是非常详尽的代码库。PASS开发就靠这儿了。
+</code></pre><h3 id="Part-2-Clang的一个例子"><a href="#Part-2-Clang的一个例子" class="headerlink" title="Part 2 Clang的一个例子"></a>Part 2 Clang的一个例子</h3><p>在tools/clang/examples/下有几个clang前端的关于词法分析和语法分析的例子，都是基于AST抽象语法树进行操作的，下面将对于一个叫做PrintFunctionNames的例子进行分析。<br>首先得编译运行该例子。如果在编译LLVM时，make进行的缺省值的编译，那么examples是并不会被编译的，在tools/clang/目录下使用如下命令进行编译。</p>
+<pre><code>make BUILD_EXAMPLES=1
+</code></pre><p>然后就会看到在build/lib/目录下生成了名为PrintFunctionNames的so文件，该文件就是一个使用抽象语法树进行一定功能的插件。使用如下运行。</p>
+<pre><code>clang -cc1 -I $C_INCLUDE_PATH -load $BUILD/lib/PrintFunctionNames.so -plugin print-fns hello.c
+</code></pre><p>下面分别解释一下都是什么意思。-cc1是只用clang的前端进行词法分析与语法分析，并不调用后端进行编译。-I是制定include目录，因为这里是使用源码编译并且没有配置环境变量，需要制定include目录。-load就是所有clang的插件编译完之后生成的so文件。-plugin是告诉clang准备制定参数运行插件，换句话讲，-plugin之后的参数是传给插件的，最后是待分析的文件名。</p>
+<p>由于hello.c并未给出，所以这里也不提供运行结果，不过大概应该是给了很多很多函数的名称，这里的函数名称是在遍历AST的时候挨个输出出来的。<br>下面将分析该样例的代码，看看该插件如何实现了上述功能。</p>
+<p><a href="https://github.com/llvm-mirror/clang/blob/master/examples/PrintFunctionNames/PrintFunctionNames.cpp" target="_blank" rel="external">源代码地址</a></p>
+<p>这是一个C++的源码，可以看到该类是继承自<strong>ASTConsumer</strong>，并且重写了函数HandleTopLevelDecl，然后没遇到一个函数，就调用getNameAsString()将该函数流送给了llvm::errs()。llvm::errs()是在运行之后的输出流，如果自己写插件都可以往这里面输出。</p>
+<p>然后另一个类继承自PluginASTAction，这是一个包装好的插件的AST的类，具体如何遍历下次深入分析。最后将该前端插件进行绑定，然后设置该插件的参数命令如下：</p>
+<pre><code>X(&quot;print-fns&quot;, &quot;print function names&quot;);
+</code></pre><p>所以可以看到，之前我们运行的命令print-fns就是在这儿被绑定的。</p>
+<h3 id="Part-3-写一个自己example"><a href="#Part-3-写一个自己example" class="headerlink" title="Part 3 写一个自己example"></a>Part 3 写一个自己example</h3><p>其实这个example我也是参照着有一版的LLVM提供的BoostASTConsumer的前端插件进行重写的，但是因为对遍历AST的类重新进行了封装，所以没了，为了进行单独编译，我就想在example目录里面放这个插件，然后编译之后生成so文件就可以用了。<br>具体如下，将包括Makefile的BoostASTConsumer目录放在source/tools/clang/examples/下，然后修改tools/clang/目录下的CMakeList.txt，添加：</p>
+<pre><code>add_subdirectory(BoostConASTConsumer)
+</code></pre><p>在最后一行，进行保存。<br>然后在build/目录下重新CMake，更新一下build目录中的cmakelist，然后在build/tools/clang/下进行</p>
+<pre><code>make BUILD_EXAMPLES=1
+</code></pre><p>即可重新编译。<br>这其中BoostConASTConsumer目录除了要有一个cpp文件之外，仍然要有一个exports文件，一个Makefile文件，一个Cmake文件，这仨我都是照着别的example写的。</p>
+<p>下面说一下这个插件的cpp文件。<br>这里我继承了两个类，<strong>ASTConsumer</strong>和<strong>RecursiveASTVisitor</strong>类，第一个类已经提到过，第二个类是一个利用深度优先遍历AST树的类。<br>然后重写了函数VisitFunctionDecl()，遇到一个函数就把函数对象保存起来并计数，最后在定义的函数PrintStats()中，将所有遍历AST中遇到的函数输出出来即可。</p>
+<h3 id="Part-4-PASS"><a href="#Part-4-PASS" class="headerlink" title="Part 4 PASS"></a>Part 4 PASS</h3><p>Pass在LLVM中起到很重要的作用，首先明确Pass的处理目标是中间语言，也就是.bc和.ll文件，不过ll是给人看的，Pass处理的都是bc。还是这样，首先运行一个pass验验货。<br>使用pass大概都如下所示的命令。</p>
+<pre><code>opt -load $LIB/*.so -plugin XXXX &lt;*.bc&gt; /dev/null
+</code></pre><p>同样，load和plugin的用法与clang类似，而使用&lt;&gt;来载入bc文件，最后执行。如果是编译到llvm内部的插件，有更加简便的方式执行，如下所示。</p>
+<pre><code>opt -XXXX &lt;*.bc&gt; /dev/null
+</code></pre><p>那个-XXXX就是LLVM自带的插件，我经常使用的插件如下所示：</p>
+<pre><code>-dot-callgraph
+-dot-cfg
+-dot-cfg-only
+    这三个插件都是生成一个dot文件，用来画图，其中加only的是不带函数体，只有函数的定义和名称，而另外两个不加only的会将函数体即body生成在dot文件里面。PS：dot文件可以用，Graphviz软件进行图形化表示，具体用法就是dot filename -Tpng -o *.png，然后就生成了一个png的图。
+-lops
+    该插件是我在做混淆的时候参考着用的，可以识别natural loop。
+-print-cfg
+-print-callgraph
+-print-callgraph-sccs
+-print-cfg-sccs
+    这四个是用来输出cfg和callgraph的，其中sccs是图的最大连通分量，在进行优化的时候很有意义。
+-print-dom-info
+    控制点的信息，求控制点在进行优化时很有意义，包括基于控制节点的分析等等。
+-print-function
+-print-module
+    顾名思义。
+-indvars
+    规范递归变量。做三个改变，1）将所有循环变量变成从0开始步长为1的循环。2）将循环变量确定为PHI node。3）所有的指针引用都用一个连续的数组引用表示。我一个将简单的数据合并为复杂的数据结构的混淆就是基于这个pass进行编写的。
+-jump-thread
+    遍历所有block，如果能证明某block的前驱可以确定的指向某一个判断条件分支，那么直接将该前驱和该前驱一定指向的后继连在一起。我另外一个基于不透明谓词的混淆就是用来抵抗这种优化的，事实证明符号执行+约束求解都证明不出来某个前驱一定指向某个后继。
+-loop-extract
+    将一个循环提出来，形成一个新的函数。我第三个混淆的方法就是基于该pass，按照我的证明某种类型的block的表达式树可以被提出来形成新的函数。
+-loop-reduce
+-loop-rotate
+-loop-simplify
+    有关loop的插件非常重要，内部提供的源代码写的很优美，而且值得借鉴。
+-simplifycfg
+    优化cfg，删除不必要的block
+-extract-block
+    抽取block
+-view-dom
+-view-postdom
+    等等查看控制节点的。
+</code></pre><p>以上～这是我常用的llvm的插件，可以看到功能还是够实现很多想法的。而且因为LLVM的模块化，所以可以进行单独编译执行。<br>具体可以参考LLVM官方<a href="http://llvm.org/docs/Passes.html" target="_blank" rel="external">PASS列表</a></p>
+<h3 id="Part-5-写一个pass"><a href="#Part-5-写一个pass" class="headerlink" title="Part 5 写一个pass"></a>Part 5 写一个pass</h3><p>本教程完全实现自LLVM官方给的<a href="http://llvm.org/docs/WritingAnLLVMPass.html" target="_blank" rel="external">Writing a pass</a><br>不知道是不是错觉，好像PASS比CLANG的插件好写的样子，代码就是上面这个网页提供的hello例子。<br>老规矩，先验验货。</p>
+<pre><code>opt -load %Build/lib/LLVMHello.so -plugin hello &lt;hello.bc&gt; /dev/null
+</code></pre><p>可以看到也是把函数名给输出出来了。具体可以参考各个pass的例子进行改写。<br>另外，如果一个插件不会用，可以将-plugin改成-help，就可以获得帮助文档啦～LLVM真方便。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;由于项目需要，研究了一段时间的LLVM，现将已经做过的实验总结如下。&lt;br&gt;实验环境：&lt;br&gt;Clang 3.2&lt;br&gt;LLVM 3.2&lt;br&gt;Ubuntu 14.04 64bit&lt;br&gt;
+    
+    </summary>
+    
+      <category term="LLVM" scheme="http://yoursite.com/categories/LLVM/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>crest的安装与使用</title>
+    <link href="http://yoursite.com/2015/07/16/2015-07-16-crest/"/>
+    <id>http://yoursite.com/2015/07/16/2015-07-16-crest/</id>
+    <published>2015-07-15T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>crest是一款针对C语言的自动测试工具，支持深度优先（DFS）、控制流图（CFG）、一致随机（uniform random）和随机分支（random branch）四种搜索策略，使用符号执行技术，使用Yices作为约束求解器进行求解。</p>
+<p>github地址为：<a href="https://github.com/jburnim/crest" target="_blank" rel="external">https://github.com/jburnim/crest</a></p>
+<p>下面是安装步骤和test的测试。</p>
+<a id="more"></a>
+<h3 id="安装环境"><a href="#安装环境" class="headerlink" title="安装环境"></a>安装环境</h3><p>Ubuntu 14.04 32bit<br>Crest 0.1.2<br>Yices 1.0.40<br>Ocaml 3.12.1</p>
+<h3 id="安装步骤"><a href="#安装步骤" class="headerlink" title="安装步骤"></a>安装步骤</h3><ol>
+<li>安装Cmaml：由于Crest需要CIL的支持，而CIL需要Ocaml的支持，所以先安装Ocaml，在googlegroup中作者说Ocaml 4.01.0可以bugfree，否则CIL可能会停止响应，但是我直接用的Ubuntu的apt-get，安装的3.12.1，运行起来也没啥问题。</li>
+<li>安装Yices，这个版本是特别古老的版本，Yices官网都已经给的是Yices2了，但是也提供老版本的下载，只是没有源码了，只有编译好的binary，自己按需下载，依赖包这种东西，错一个版本几乎就不能用，我不信邪，装了Yices2，结果。。我还是用了Yices1.0.40。之后按照Crest的要求，把crest/src/Makefile Yices的目录更新一下，方便编译。</li>
+<li>安装CIL：依赖包都安装完了，现在开始安装Crest，但是之前，要先安装CIL，去Crest/CIL/目录configure一下，看看缺什么包自己安装就好了，不过一般都是ocaml-find和libgmp-dev两个包。configure通过之后再make就好了。</li>
+<li>安装Crest：去Crest/src/目录下，make即可完成安装。</li>
+</ol>
+<h3 id="test实验"><a href="#test实验" class="headerlink" title="test实验"></a>test实验</h3><p>github上面给了一个test的运行例子，我也就是照着做了一遍，大概流程如下：<br>首先，测试的C程序是test目录下的uniform_test.c，关键代码如下：</p>
+<pre><code>if (a == 5) {
+    if (b == 19) {
+        if (c == 7) {
+            if (d == 4) {
+                fprintf(stderr, &quot;GOAL!\n&quot;);
+            }
+        }
+    }
+}
+</code></pre><p>可以看到，如果约数求解成功，应该有八个分支，并且其中一个分支应该输出“GOAL！”。然后把程序改装一下，需要进行一些代码插桩，比如将变量利用CREST的函数声明，然后输出的时候使用stderr进行输出，这样就可以看到例子了。这些事情test的代码都已经做好，具体可以看看test是怎么做的。然后使用bin目录下的crest对代码进行插桩和编译工作。使用run_crest运行已经插桩好的二进制文件，可以得出如下输出：</p>
+<pre><code>Iteration 0 (0s): covered 0 branches [0 reach funs, 0 reach branches].
+Iteration 1 (0s): covered 1 branches [1 reach funs, 8 reach branches].
+Iteration 2 (0s): covered 3 branches [1 reach funs, 8 reach branches].
+Iteration 3 (0s): covered 5 branches [1 reach funs, 8 reach branches].
+Iteration 4 (0s): covered 7 branches [1 reach funs, 8 reach branches].
+GOAL!
+Iteration 5 (0s): covered 8 branches [1 reach funs, 8 reach branches].
+</code></pre><p>可以看到，已经得出了8个分支，而且也输出了“GOAL！”。任务算是完成了吧。</p>
+<p>PS：这仅仅是对单个C文件的测试，据作者说还可以测试工程，等回来再行实验。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;crest是一款针对C语言的自动测试工具，支持深度优先（DFS）、控制流图（CFG）、一致随机（uniform random）和随机分支（random branch）四种搜索策略，使用符号执行技术，使用Yices作为约束求解器进行求解。&lt;/p&gt;
+&lt;p&gt;github地址为：&lt;a href=&quot;https://github.com/jburnim/crest&quot;&gt;https://github.com/jburnim/crest&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;下面是安装步骤和test的测试。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="程序分析" scheme="http://yoursite.com/categories/%E7%A8%8B%E5%BA%8F%E5%88%86%E6%9E%90/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>iOS安全实验记录（一）：搭建环境与所需工具</title>
+    <link href="http://yoursite.com/2015/07/14/2015-07-14-iossecurity1/"/>
+    <id>http://yoursite.com/2015/07/14/2015-07-14-iossecurity1/</id>
+    <published>2015-07-13T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：</p>
+<ol>
+<li>逆向某些App。</li>
+<li>Hook与注入实验。</li>
+<li>ROP攻击实验。</li>
+<li>越狱开发。</li>
+</ol>
+<p>有兴趣探讨实验或提供实验主题请联系<strong>qinsky31@gmail.com</strong>。</p>
+<a id="more"></a>
+<p>今天，主要讲一下我这里搭建的环境，以及使用工具。</p>
+<h3 id="Theos"><a href="#Theos" class="headerlink" title="Theos"></a>Theos</h3><p>这是一款越狱开发的工具包，与iOSOpenDev不同，这个工具包并不那么的<strong>完善</strong>，而逆向工程中很多东西无法自动化，所以使用这个不怎么完善的工具包可以方便对整个逆向的过程理解更加清晰明确。</p>
+<h3 id="ldid"><a href="#ldid" class="headerlink" title="ldid"></a>ldid</h3><p>签名用，在MAC上放一个也可以，在iPhone上放一个也可以。</p>
+<h3 id="CydiaSubstrate"><a href="#CydiaSubstrate" class="headerlink" title="CydiaSubstrate"></a>CydiaSubstrate</h3><p>著名的越狱开发的基础包，主要提供了三种功能，使用简单方便：Hook，Loader，Safemode。Hook和Loader都不陌生，可以对目标进程进行Hook和注入。Safemode是CydiaSubstrate引入的专为越狱开发而做的，因为Loader使用的dylib载入第三方lib的，如果第三方lib（也就是自己的lib）出错的话，会让被注入的进程崩溃。而这个safemode可以识别SIGTRAP、SIGABRT、SIGILL、SIGBUS、SIGSEGV、SIGSYS六个信号，一旦被触发就进入safemode，禁用所有第三方lib，方便调试。</p>
+<h3 id="Cycript"><a href="#Cycript" class="headerlink" title="Cycript"></a>Cycript</h3><p>一个可以进行运行在MTerminal的脚本语言，很方便的就注入进程，查看某函数的运行结果，某个中间结果都非常方便。</p>
+<h3 id="LLDB和debugserver"><a href="#LLDB和debugserver" class="headerlink" title="LLDB和debugserver"></a>LLDB和debugserver</h3><p>由于笔者研究方向与LLVM相关，所以老老实实的用lldb进行调试了。</p>
+<h3 id="OpenSSH"><a href="#OpenSSH" class="headerlink" title="OpenSSH"></a>OpenSSH</h3><p>方便手机远程调试。</p>
+<h3 id="usbmuxd"><a href="#usbmuxd" class="headerlink" title="usbmuxd"></a>usbmuxd</h3><p>一个将USB协议抽象成为TCP协议的服务，可以使用USB插口进行调试。</p>
+<h3 id="MTerminal"><a href="#MTerminal" class="headerlink" title="MTerminal"></a>MTerminal</h3><p>iOS上的终端。</p>
+<h3 id="syslogd"><a href="#syslogd" class="headerlink" title="syslogd"></a>syslogd</h3><p>记录系统日志。进行越狱开发的时候syslog是不可或缺的帮手。</p>
+<h3 id="otool"><a href="#otool" class="headerlink" title="otool"></a>otool</h3><p>不用安装，可以查看程序依赖的动态库。</p>
+<h2 id="Hello-World"><a href="#Hello-World" class="headerlink" title="Hello World"></a>Hello World</h2><p>按照惯例，写一个helloworld的程序，放在手机里执行作为开始。要在MAC上编译一个可以在iOS上执行的C程序，需要编译器，也需要指定SDK，下面分别进行介绍。</p>
+<h3 id="编译器"><a href="#编译器" class="headerlink" title="编译器"></a>编译器</h3><p>原来交叉编译环境都是arm-开头，中间应该有关键字llvm-gcc，我找了半天，毛都没有，后面去Xcode更新日志上看到，从Xcode开始编译器都指定为clang，不再使用llvm-gcc，这一头包。后来在StackOverflow上面找到了一种方法，就是执行命令：</p>
+<pre><code>xcrun -f --sdk iphoneos clang
+</code></pre><p>xcrun是Xcode中command line tool的工具，这个命令可以找到Xcode使用的sdk包的地址。而iphoneos则是指定的平台，这样就找到了clang的位置。不过，这里clang是一个通用的编译器，需要指定平台和SDK包才行。</p>
+<h3 id="SDK"><a href="#SDK" class="headerlink" title="SDK"></a>SDK</h3><p>SDK包的位置倒是好找一点，直接find搜所有的SDKs找到相应SDK的位置即可。我要在iPhone执行我的helloworld，那么就选iPhone的SDK，这里SDK的版本是8.4。</p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>运行命令：</p>
+<pre><code>clang --target=arm64-apple-darwin14.4.0 -isysroot $SDKs
+</code></pre><p>这中间target是指定平台，这里我用的iPhone6p，所以平台是arm64，isysroot指定的是SDK的文件，这里是我自己设的变量，需要改成自己的目录。</p>
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>通过命令scp放在手机上，用ldid签名然后就可以运行了。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;会持续更新iOS相关的安全实验，具体多少更不清楚，有好的主题就继续往下做，包括但不限于以下几个方面（这是已经做过和很感兴趣的）：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;逆向某些App。&lt;/li&gt;
+&lt;li&gt;Hook与注入实验。&lt;/li&gt;
+&lt;li&gt;ROP攻击实验。&lt;/li&gt;
+&lt;li&gt;越狱开发。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;有兴趣探讨实验或提供实验主题请联系&lt;strong&gt;qinsky31@gmail.com&lt;/strong&gt;。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="ios安全" scheme="http://yoursite.com/categories/ios%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>usbmuxd服务及应用</title>
+    <link href="http://yoursite.com/2015/07/13/2015-07-13-usbmuxd/"/>
+    <id>http://yoursite.com/2015/07/13/2015-07-13-usbmuxd/</id>
+    <published>2015-07-12T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>今天在装iPhone上的LLDB+debugserver的时候，wifi突然抽风，非常慢，致使在主机进行lldb远程调试的时候过了好多分钟才能打开远程的app，等待的过程中我查了一下资料，发现也有一些人是遇到了这些情况，他们是通过usbmuxd服务进行解决的。迫不及待，实验了一番。</p>
+<p>后面查到这个usbmuxd服务，将USB通信抽象为TCP通信，也就是说实现了基于USB驱动之上的TCP连接，回想iTunes和Xcode应该也都用了这个技术，从而可以使用USB连接。</p>
+<p><a href="https://github.com/libimobiledevice/libimobiledevice" target="_blank" rel="external">libimobiledevice</a>整合了usbmuxd服务，并在此基础上实现了一些特殊的功能，早期的越狱都是通过这个库进行操作的，同样也可以利用该库+ifuse进行远程访问控制手机等等。（而且是在非越狱的情况下）</p>
+<p>如果说上面这个库还很理论化的话，<a href="https://github.com/rsms/peertalk" target="_blank" rel="external">peerTalk</a>，依然也是一个基于usbmuxd服务的项目，而且该项目封装的很好，非常容易参考，从而完成自己的开发。而且这中间只是用到的私有的协议，并没有用到私有API，应该还是可以上架的。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;今天在装iPhone上的LLDB+debugserver的时候，wifi突然抽风，非常慢，致使在主机进行lldb远程调试的时候过了好多分钟才能打开远程的app，等待的过程中我查了一下资料，发现也有一些人是遇到了这些情况，他们是通过usbmuxd服务进行解决的。迫不及待，实验
+    
+    </summary>
+    
+      <category term="ios安全" scheme="http://yoursite.com/categories/ios%E5%AE%89%E5%85%A8/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>安全协议读书笔记（二）：安全协议的三大理论分析方法</title>
+    <link href="http://yoursite.com/2015/06/15/2015-06-15-methods_of_protocols_analysis/"/>
+    <id>http://yoursite.com/2015/06/15/2015-06-15-methods_of_protocols_analysis/</id>
+    <published>2015-06-14T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>安全协议的安全性分析包括理论分析、设计分析、检测分析和经验分析等多种方法。但是理论分析依靠严格的理论验证，使得安全协议可以获得比较高的安全性。<br><a id="more"></a></p>
+<h2 id="安全多方计算"><a href="#安全多方计算" class="headerlink" title="安全多方计算"></a>安全多方计算</h2><p>安全多方计算是姚期智在1982年提出的一个概念。之后Glodreich、Micali和Wigderson给出了一般性描述。<br>目前安全多方计算主要的成果在以下四个方面：</p>
+<ol>
+<li>澄清分布式计算的一些基本安全性问题。</li>
+<li>说明在既定的安全模型下，哪些分布式计算功能可以安全实现，哪些不能。</li>
+<li>给出设计分布式安全协议的一般技术和方法。</li>
+<li>设计可以应用的分布式计算的安全方案和模块。</li>
+</ol>
+<p>到目前位置，理论上任何安全多方计算问题都可以通过普通计算来解决，但是效率比较低。所以设计一个一般性的解决方案很不实用。如何针对特殊情况提出特定的解决方案，如何能使得部署解决方案快速、有效的部署，并能方便的进行二次开发与定制，是现在安全多方计算的一个重要的研究方向。</p>
+<h2 id="安全协议的形式化分析方法"><a href="#安全协议的形式化分析方法" class="headerlink" title="安全协议的形式化分析方法"></a>安全协议的形式化分析方法</h2><p>这是一种标准的方法，使得所有协议均有可能被证伪，但是参考哥德尔定理，并不能保证能证明，只是可以检查协议符合既定的安全目标。因此形式化协议分析有助于：(1)准确的描述协议的行为；(2)准确的描述出协议的安全特性；(3)证明安全协议满足既定安全目标，以及证明协议在什么条件下不满足既定的安全目标。</p>
+<p>发展过程分为四个阶段。</p>
+<ol>
+<li>早期阶段，这一阶段主要是针对具体的协议进行研究。最早提出形式化分析思想的Needham和Schroeder，为密钥共享和公钥认证服务器系统建立了安全协议。</li>
+<li>形式化分析初级阶段，以Dolev-Yao的工作为标志。使用BAN类逻辑，CKT5等基于知识逻辑的有效逻辑进行验证。</li>
+<li>转折阶段。G. Lowe的论文《关于Needham-Schroeder公钥协议的一个攻击》，使得各方开始研究使用一般用途的模型检测方法应用与协议分析。</li>
+<li>理论证明阶段。Fabrega、Herzog和Guttman的串空间（Strand Space）理论，以及Paulson的归纳方法为代表。</li>
+</ol>
+<h2 id="安全协议的可证明安全性理论"><a href="#安全协议的可证明安全性理论" class="headerlink" title="安全协议的可证明安全性理论"></a>安全协议的可证明安全性理论</h2><p>到现在为止，大多数安全协议的现状是，设计出来之后进行一些测试，然后该协议自应用之后很长一段时间都没有被破译，那就具有公认的安全性。如果发现了其中的安全漏洞，在进行少量改动之后，继续进行应用，直到具有公认的安全性。<br>这个过程，在计算机的各个领域都出现过这种原始而初级的阶段，跟闹着玩儿似的，但是由于完成比完美重要的多，所以先做个能用的是大多数计算机技术人员最常用的选择。<br>而可证明安全性理论，指的是这么一种归纳的方法：确定安全目标，构建攻击者模型，对某个元操作（Atomic Primitives，比如DES加密算法，某个数学难题等等）的特定协议，然后基于以上形式化模型分析。换句话说对所有的安全协议分析到到最后都会被归纳到对元操作的安全性分析。<br>可知，可证明安全性理论本质是一种公理化的研究方法。具体我理解也不够深入，这儿给出几个概念，如果感兴趣可以继续查：最初的思想阐述由Goldwasser、Micali和Rivest在20世纪80年代完成，由于效率问题20世纪90年代中出现“面向实际的可证明安全性（Practive-Oriented Provable-Security）”，Bellare和Rogaway提出的随机预言（Random Oracle，RO）模型方法论。RO是一个转折点，之后大量的有效的方案纷纷出现，同时产生了另一个概念：“具体安全性（Contrete Security or Exact Security）”。目前为止，几乎所有的国际安全标准体系都要求至少提供在RO模型中可证明的安全性设计。而现在可证明安全性的方案大都基于RO模型。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;安全协议的安全性分析包括理论分析、设计分析、检测分析和经验分析等多种方法。但是理论分析依靠严格的理论验证，使得安全协议可以获得比较高的安全性。&lt;br&gt;
+    
+    </summary>
+    
+      <category term="安全协议" scheme="http://yoursite.com/categories/%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>安全协议读书笔记（一）</title>
+    <link href="http://yoursite.com/2015/06/11/2015-06-11-Security_Protocols/"/>
+    <id>http://yoursite.com/2015/06/11/2015-06-11-Security_Protocols/</id>
+    <published>2015-06-10T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
+
+<p>选书为北京邮电大学出版的《安全协议》，作者是曹天杰、张永平、汪楚娇。这本书是上课时候的教材，由于很多内容囫囵吞枣，在此梳理一遍，更新时间不定。</p>
+<a id="more"></a>
+<h2 id="攻击模型"><a href="#攻击模型" class="headerlink" title="攻击模型"></a>攻击模型</h2><p>该攻击模型来源是Dolev和Yao在1983年发的论文。<br>一般默认攻击者具有以下能力：</p>
+<ol>
+<li>可以窃听所有经过网络的消息；</li>
+<li>可以阻止和截获所有经过网络的消息；</li>
+<li>可以存储所获得或自身创造的消息；</li>
+<li>可以根据存储的消息伪造消息，并发送该消息；</li>
+<li>可以作为合法的主题参与协议的运行；</li>
+</ol>
+<p>而常见的协议攻击手段包括：窃听、篡改、重放、预重放、反射、拒绝服务、类型攻击、密码分析、证书操纵、协议交互等。<br>下面分别对反射、类型攻击、证书操纵三种攻击方式详解。</p>
+<h3 id="反射"><a href="#反射" class="headerlink" title="反射"></a>反射</h3><p>首先，反射是重放的一个特例，该攻击存在的前提是协议能够并行运行。<br>现在在A和B之间存在一个认证协议，通过这个协议的验证可以使得A和B互相验证，其中\(N_A\)和\(N_B\)分别是A和B生成的一个随机数，K是A和B之间共享的密钥，A和B通过认证对方能揭开自己加密的随机数的方式认证，对方与自己同时拥有密钥K从而进行相互认证。协议过程如下：</p>
+<ol>
+<li>A&rarr;B: {\(N_A\)}K</li>
+<li>B&rarr;A: {\(N_B\)}K, \(N_A\)</li>
+<li>A&rarr;B: \(N_B\)</li>
+</ol>
+<p>A收到消息2的时候就可以认为此消息来源为B，同样B在收到消息3时就可以认为消息来源为A，因为A和B共享密钥K。但是，该协议就可以被反射攻击，攻击过程如下，其中第2,3,6步是攻击者C重新和A发起的另外一个并行认证协议。以下表示协议执行顺序，但是该过程包含了两个并行执行的认证协议。</p>
+<ol>
+<li>A&rarr;C: {\(N_A\)}K</li>
+<li>C&rarr;A: {\(N_A\)}K</li>
+<li>A&rarr;C: {\(N_A\)’}K, \(N_A\)</li>
+<li>C&rarr;A: {\(N_A\)’}K, \(N_A\)</li>
+<li>A&rarr;C: \(N_A\)’</li>
+<li>C&rarr;A: \(N_A\)’</li>
+</ol>
+<p>消息1是A发起的一个认证协议，在此，称其为认证协议M，在消息1之后，C收到了用K加密的信息，立即向A发起了一个新的认证协议（认证协议N），发送的就是消息1收到的使用K加密的随机数\(N_A\)。对于认证协议N来说，A需要向C发送一个\(N_A\)的明文，才能向C证明A知道密钥K。同时也会发送一个由K加密的随机数\(N_A\)’。而对于认证协议M来说，C需要向A发送\(N_A\)的明文才能向A证明C保有密钥K，之后C做了两次重放，就完成了认证协议M和N的认证，而在此过程中，所有的解密工作由A完成，C在不保有密钥K的情况下完成了认证。称C完成了一次反射攻击。</p>
+<p>同时在完成攻击之后，C同时获得，获取任意明文被密钥K加密成密文的能力，这在别的攻击中非常有用，比如随时获取明文-密文对，有助于破解密钥K。</p>
+<h3 id="类型攻击"><a href="#类型攻击" class="headerlink" title="类型攻击"></a>类型攻击</h3><p>由于在协议当中，各方收到的消息都是二进制串组成的，用户没办法将该二进制串区分开，哪部分是加密的，哪部分是明文都不清楚。类型攻击就是利用这一点，让用户将一个消息错误的理解成为另外一个消息，比如可以将身份标识识别为一个密钥。下面是一个例子，该协议是Otway和Rees认证协议。A和B都长期存有与服务器S的密钥\(K_AS\)和\(K_BS\)。A和B的相互认证需要通过S进行，之后S会向A和B发送一个会话密钥\(K_AB\)，具体流程如下，其中M和\(N_A\)是A选择的随机数，\(N_B\)是B的随机数。</p>
+<ol>
+<li>A&rarr;B: M, A, B, {\(N_A\), M, A, B}\(K_{AS}\)</li>
+<li>B&rarr;S: M, A, B, {\(N_A\), M, A, B}\(K_{AS}\), {\(N_A\), M, A, B}\(K_{BS}\)</li>
+<li>S&rarr;B: M, {\(N_A\), \(K_{AB}\)}\(K_{AS}\), {\(N_A\), M, A, B}\(K_{BS}\)</li>
+<li>B&rarr;A: M, {\(N_A\), \(K_{AB}\)}\(K_{AS}\)</li>
+</ol>
+<p>可以看到，消息1和消息4的格式比较相似，这就是进行类型攻击的点。而类型攻击需要额外进行一些假设，就是想要替换的类型长度是一致的，比如这里如果想用M、A、B替换\(K_{AB}\)，那么这两者长度要一致，这里假设一致。在这些假设之后，攻击就可以开始进行了。这里\(C_B\)表示C假冒B进行攻击。</p>
+<ol>
+<li>A&rarr;\(C_B\): M, A, B, {\(N_A\), M, A, B}\(K_{AS}\)</li>
+<li></li>
+<li></li>
+<li>\(C_B\)&rarr;A: M, {\(N_A\), M, A, B}\(K_{AS}\)</li>
+</ol>
+<p>可以看到，在消息4中，C直接把从A发送的消息1，部分重新发送给消息A，使得A误认为组合域M、A、B当作共享密钥\(K_{AB}\)，而M、A、B的值都是明文，可以得到，所以在之后的会话中，C就可以继续假冒B与A进行通信了。</p>
+<h3 id="证书操纵"><a href="#证书操纵" class="headerlink" title="证书操纵"></a>证书操纵</h3><p>数字证书可以担保某实体是公钥的拥有者。但是如果没有验证声明拥有密钥对拥有密钥权限的实体时，就会存在潜在攻击，使得攻击者具有能力获取合法的公钥证书，即使攻击者并不保有对应的私钥。<br>比如，A和B分别拥有公钥\(g^a\)和\(g^b\)，对应的私钥分别是a和b。A和B分别拥有证书Cert(A)和证书Cert(B)。证书中有公钥的副本。该协议是用来进行密钥协商，这里x和y是A和B选择的随机数。该协议描述如下：</p>
+<ol>
+<li>A&rarr;B: \(g^x\), Cert(A)</li>
+<li>B&rarr;A: \(g^y\), Cert(B)</li>
+</ol>
+<p>之后双方计算共享密钥\(K_{AB}=g^{ay+bx}\)。A和B都使用x和y进行计算。攻击者声明自己拥有公钥\(g^{ac}\)，并拥有证书Cert(C)，但是其实攻击者并没有私钥ac。在声明之后，C完成了与A和B的各一次认证，同时进行，攻击过程如下：</p>
+<ol>
+<li>A&rarr;\(C_B\): \(g^x\), Cert(A)</li>
+<li>C&rarr;B: \(g^x\), Cert(C)</li>
+<li>B&rarr;C: \(g^y\), Cert(B)</li>
+<li>\(C_B\)&rarr;A: \(g^{yc}\), Cert(B)</li>
+</ol>
+<p>A计算密钥\(K_{AB}=(g^{yc})^a*(g^b)^x=g^{acy+bx}\)，B将计算密钥\(K_{AB}=(g^{ac})^y*(g^x)^b=g^{acy+bx}\)。可以看到A和B计算出的密钥是一样的。但是在这里，对于A来说，A认为A和B（其实是C假冒的）保有密钥\(K_AB\)，而对于B来说，B认为B和C保有这个密钥。可以看到存在很多问题。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;script type=&quot;text/javascript&quot; src=&quot;http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default&quot; &gt;&lt;/script&gt;
+
+&lt;p&gt;选书为北京邮电大学出版的《安全协议》，作者是曹天杰、张永平、汪楚娇。这本书是上课时候的教材，由于很多内容囫囵吞枣，在此梳理一遍，更新时间不定。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="安全协议" scheme="http://yoursite.com/categories/%E5%AE%89%E5%85%A8%E5%8D%8F%E8%AE%AE/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>NG机器学习的编程实验</title>
+    <link href="http://yoursite.com/2015/05/14/2015-05-14-ng_ex/"/>
+    <id>http://yoursite.com/2015/05/14/2015-05-14-ng_ex/</id>
+    <published>2015-05-13T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="#ex1">实验一：线性回归</a><br><a href="#ex2">实验二：逻辑回归</a><br><a href="#ex3">实验三：神经网络</a><br><a href="#ex4">实验四：神经网络反向传播算法</a><br><a href="#ex5">实验五：线性回归和修正欠拟合与过拟合</a><br><a href="#ex6">实验六：支持向量机</a><br><a href="#ex7">实验七：K-均值算法与PCA算法</a><br><a href="#ex8">实验八：异常检测和推荐系统</a>  </p>
+<a id="more"></a>
+<p><a name="ex1"></a></p>
+<h2 id="实验一，Programming-Assignment-Linear-Regression"><a href="#实验一，Programming-Assignment-Linear-Regression" class="headerlink" title="实验一，Programming Assignment: Linear Regression"></a>实验一，Programming Assignment: Linear Regression</h2><p>这个实验就是用来熟悉一下提交的环境，另外在学习算法的各个过程都需要填几行关键程序，包括怎么求估价函数，怎么施行阶梯算法，怎么标准化数据等等，选做实验是两种特征的训练数据。</p>
+<h3 id="1-1-单位矩阵"><a href="#1-1-单位矩阵" class="headerlink" title="1.1 单位矩阵"></a>1.1 单位矩阵</h3><p>就是通过eye函数得一个单位矩阵。</p>
+<h3 id="1-2-计算估价函数J"><a href="#1-2-计算估价函数J" class="headerlink" title="1.2 计算估价函数J"></a>1.2 计算估价函数J</h3><p>（对不起我还不会写公式，回来更新）</p>
+<pre><code>J = sum((X * theta - y).^2) / (2*m);
+</code></pre><p>注意其中的.^，这是矩阵特有的操作符号，是矩阵的每一个对应的位置进行相应的运算。sum函数则是对矩阵求和。如果得出的结果是32.07就说明程序写的没问题，总之矩阵运算一定要注意的是x*y对应起来，否则如果出错还容易发现矩阵运算没有写错，如果恰好没有提示错误，得出的结果不对这种Bug会改的头破血流。</p>
+<h3 id="1-3-实现阶梯下降算法"><a href="#1-3-实现阶梯下降算法" class="headerlink" title="1.3 实现阶梯下降算法"></a>1.3 实现阶梯下降算法</h3><p>（公式仍然不会写）</p>
+<pre><code>theta(1) = theta(1) - alpha/m*sum(X*theta_backup-y);
+theta(2) = theta(2) - alpha/m*sum((X*theta_backup-y).*X(:,2));
+</code></pre><p>这只是单纯照着阶梯下降算法更新theta就好。值得注意的地方在上课的时候NG也说了，因为再更新theta的过程中会改变theta，所以我这里用了一个 <strong> theta_backup </strong> 对原来的theta进行了备份。这是一个特征的情况，下面还会有多种特征的简便写法（我第一次写的是循环^o^）。</p>
+<p>这个实验做到这里其实已差不多了，看到最后画出的图还是很开心的，虽然感觉上跟我并没有什么关系。</p>
+<h3 id="1-4-多类特征的附加实验"><a href="#1-4-多类特征的附加实验" class="headerlink" title="1.4 多类特征的附加实验"></a>1.4 多类特征的附加实验</h3><p>具体步骤跟单类特征差不多，值得注意的就是上文提到的更新theta的简便写法：</p>
+<pre><code>theta = theta - alpha / m * X&apos; * (X * theta - y); 
+</code></pre><p>X’是求X的转置矩阵。</p>
+<p>这是对数据标准化的语句，话说在pdf中间直接告诉要怎么做这样真的好嘛？连需要用的函数都给了。。。</p>
+<pre><code>mu = mean(X);
+sigma = std(X);
+X_norm = (X - repmat(mu, size(X,1) , 1))  ./ repmat(sigma,size(X,1),1);
+</code></pre><p>mean()函数是求平均值，具体自己做做实验就知道了，我就是一边儿一边儿在shell上面测试函数的用法，实用是学习最快的方法。std()函数是求标准差，然后完全按照pdf的描述就可以写下这条语句了（当然，我这么笨的人在shell上面测试了好久。。）。</p>
+<p>另外视频中也提到过，如果数据规模小的话，可以直接使用矩阵进行计算：</p>
+<pre><code>theta = pinv(X&apos;*X)*X&apos;*y;
+</code></pre><p>pinv()函数是求矩阵的逆，其实就是这个函数限制着这种干脆利索的方法的运行速度的。</p>
+<h3 id="1-5-总结"><a href="#1-5-总结" class="headerlink" title="1.5 总结"></a>1.5 总结</h3><p>总之，第一次实验叫做 <strong>worm exercises</strong> 也是有一定道理的。其实就是给 <strong>纸上得来</strong> 和 <strong>恭行</strong> 两件事建立个联系，知道这些算法是可以实现并且实际工作的，这对于我这样的笨蛋还是很重要的，学的时候总觉得隔层纱，到真的程序运行结果砸在脸上了，就能迷糊回来了。</p>
+<p><a name="ex2"></a></p>
+<h2 id="实验二，Logistic-Regression"><a href="#实验二，Logistic-Regression" class="headerlink" title="实验二，Logistic Regression"></a>实验二，Logistic Regression</h2><p>该实验总共包含两个小实验，一个是基础的逻辑回归实验，另一个是情况稍微复杂一点的实验，需要拟合的数据不是直线，当然其实如果没想那么多，跟着pdf做的话，几乎感觉不到区别，除了最后可视化的图不太一样。</p>
+<h3 id="2-1-将数据可视化"><a href="#2-1-将数据可视化" class="headerlink" title="2.1 将数据可视化"></a>2.1 将数据可视化</h3><p>可以看到，边界线大概是条直线。</p>
+<h3 id="2-2-实现"><a href="#2-2-实现" class="headerlink" title="2.2 实现"></a>2.2 实现</h3><p>经过前面的实验熏陶，已经知道这个实验实现部分肯定包括CostFunction，下降率，自己对数据进行预测等等，所有需要做的就是照着公式用octave实现出来就可，再次强调 <strong>矩阵的行和列</strong> 是验算式子写的对不对的有效的方法。<br>sigmoid函数很简单，不过注意的是这个函数接受的参数z，是矩阵，所以使用操作符号的时候一定要注意，该用“./”就要用。<br>求J的CostFunction，解析起来比较复杂，还是惯例，从里到外解析，注意运算符左右的矩阵的行和列，一般不会有什么问题，具体公式如下所示：</p>
+<pre><code>J = 1 / m * sum((-y).*log(sigmoid(X*theta)) - (1-y).*log(1-sigmoid(X*theta)));
+</code></pre><p>要注意的还是诸如“.*”这些操作符号。<br>而相关的gradient更新的公式如下：</p>
+<pre><code>grad = 1 / m * (X&apos; * (sigmoid(X*theta) - y));
+</code></pre><hr>
+<p>其实costfunction写完之后，需要修改的文件已经差不多没了，但是任务并没有结束，有了costfunction要如何更新theta呢？<br>这里是使用了octave里面提供的fminunc函数，通过这个函数算出对于CostFunction来说最优的参数。使用方式如下所示：</p>
+<pre><code>options = optimset(&apos;GradObj&apos;, &apos;on&apos;, &apos;MaxIter&apos;, 400);
+[theta, cost] = fminunc(@(t)(costFunction(t, X, y)), initial_theta, options);
+</code></pre><p>GradObj参数告诉fminunc使用gradient来计算需要返回theta和cost两个值，设置MaxIter最大步数为400。后面@(t)的写法是内部调用函数，同时提供theta和上文提到的options就可以等待fminunc算出结果了。并不用自己制定下降率之类的参数，大部分工作都由fminunc做了。</p>
+<h3 id="2-3-评估结果"><a href="#2-3-评估结果" class="headerlink" title="2.3 评估结果"></a>2.3 评估结果</h3><p>这里就是将已经得到的theta带进h函数就好，然后把所有的值在0.5以上的数据挑出来，将其y置1就好，使用find，很容易达到目的。</p>
+<pre><code>tmp = sigmoid(X*theta);
+finde = find(tmp&gt;=0.5);
+p(finde,1) = 1;
+</code></pre><p>然后就可以看到结果啦。</p>
+<h3 id="2-4-第二个实验：Regularized-logistic-regression"><a href="#2-4-第二个实验：Regularized-logistic-regression" class="headerlink" title="2.4 第二个实验：Regularized logistic regression"></a>2.4 第二个实验：Regularized logistic regression</h3><p>整个流程和第一个实验差不多，需要注意的是costFunction中计算J函数和gradient更新，对于j=0和j&gt;0是不一样的处理方式，另外在mapFeature函数中，使用了6次的多项式对数据进行拟合，可以看其拟合的手法，值得学习。<br>最后还给出了过度拟合与拟合度不够的边界值的图，可以看看。</p>
+<h3 id="2-5-总结"><a href="#2-5-总结" class="headerlink" title="2.5 总结"></a>2.5 总结</h3><p>整体来说，大部分程序不需要自己动手，只是部分函数自己填一下就可以了，像填空一样，但是做到现在，应该慢慢对整个体系有一些印象，回来是需要自己把整个过程都写出来的，提前做准备。</p>
+<p><a name="ex3"></a></p>
+<h2 id="实验三，神经网络算法"><a href="#实验三，神经网络算法" class="headerlink" title="实验三，神经网络算法"></a>实验三，神经网络算法</h2><p>这个实验使用了视频最后讲的识别手写数字作为数据输入，分别使用了多种特征的逻辑回归算法与神经网络算法进行实验，用来加强这两种算法的对比。实际运行时也会有个大概的印象，在特征较多时<strong>神经网络算法果然比逻辑回归要快</strong>。</p>
+<h3 id="3-1-多重特征的逻辑回归算法"><a href="#3-1-多重特征的逻辑回归算法" class="headerlink" title="3.1 多重特征的逻辑回归算法"></a>3.1 多重特征的逻辑回归算法</h3><p>这一小节就是对上一次实验的复习，如果上次实验costFunction和grad写的好的话，这次可以直接拿来用。但是果然还是再做一边比较好。<br>然后调用fmincg函数，比之前用的fminunc在处理大规模数据方面更有效率。<br>但是使用方法和fminunc几乎一样。<br>然后根据前面训练出来的theta对手写数字进行预测，一切都差不多。需要注意的就是这里使用max函数，得出的是每行最大的值（越大越正确），需要用一个两列的矩阵接受max函数的返回值，这样，第一列返回的是最大值，第二列返回的是最大值所在的位置。第二列才是我们需要的。第几个最大，预测就是几。</p>
+<h3 id="3-2-神经网络算法"><a href="#3-2-神经网络算法" class="headerlink" title="3.2 神经网络算法"></a>3.2 神经网络算法</h3><p>所有的theta已经算好，而且模型也给出了，是一个具有一个hidden层的模型，hidden层具有25个单元，输出层有10个单元。<br>那由于数据是有4000个特征的。所以可以预测theta1是25×401的矩阵，而theta2是10×26的矩阵。<br>于是有了theta之后，就可以一层一层的进行计算了，每层记得加上x0。<br>如下所示：</p>
+<pre><code>tmpX = [ones(m,1) X];
+layer1 = sigmoid(tmpX * Theta1&apos;);
+tmplayer1 = [ones(m,1) layer1];
+layer2 = sigmoid(tmplayer1 * Theta2&apos;);
+[a,p] = max(layer2,[],2);
+</code></pre><p>代码很简单，最后的max函数上面也讲过了，需要用一个两列的矩阵接受返回值，第二列就是我们的预测值。（他把10当作0了）</p>
+<p><a name="ex4"></a>  </p>
+<h2 id="实验四-神经网络与反向传播算法"><a href="#实验四-神经网络与反向传播算法" class="headerlink" title="实验四 神经网络与反向传播算法"></a>实验四 神经网络与反向传播算法</h2><p>本次实验主要实现了包括反向传播算法在内的比较完整的神经网络学习算法，由于这个算法比较复杂，实现起来步骤也比较多，所以经常容易出错，甚至这个算法后面还花了很大的篇幅给了一个校验算法，可能都觉得这算法偷摸在后台跑着很不让程序员放心。<br>本次实验将神经网络学习算法分为了两个部分，第一是前向传播，这部分和上个实验的相关部分相近，神经网络模型也是三层，Theta1是25 × 401，Theta2是10 × 26。在之后写代码的时候会经常遇到。</p>
+<h3 id="4-1-前向算法的实现"><a href="#4-1-前向算法的实现" class="headerlink" title="4.1 前向算法的实现"></a>4.1 前向算法的实现</h3><p>具体步骤和实验三类似，但是需要注意的是，这里输出层包含了十个单元，但是给出的y只是1-10的数字，需要将y转成位图存储，具体代码如下：</p>
+<pre><code>Y = [];
+E = eye(num_labels);
+for i=1:num_labels
+    Y0 = find(y==i);
+    Y(Y0,:) = repmat(E(i,:),size(Y0,1),1);
+end
+</code></pre><p>主要用了find函数与repmat函数，find函数前面有介绍，而repmat函数就是重复矩阵，所以这里又要说了，矩阵运算赛高～～</p>
+<p>这里的costFunction看起来非常复杂，需要算有三个求和符号的式子，而且就算是向量算式仍然还有两个求和符号，善用sum求和函数即可，复杂但是不难。对了，记得加上正则化的参数。</p>
+<p>learning部分，包括梯度导数都将在下一节介绍。</p>
+<h3 id="4-2-后向传播算法的实现"><a href="#4-2-后向传播算法的实现" class="headerlink" title="4.2 后向传播算法的实现"></a>4.2 后向传播算法的实现</h3><p>这一次实验的重点来了，梯度导数算起来步骤繁多，还是善用解构的方法，现处理和别的联系不大的模块，官方给的pdf也是先要处理sigmoid导数计算的小模块，pdf中已经给出了导数的式子，没事儿可以自己求个导～<br>将随机初始化处理了之后，就开始本次实验的重头戏，后向传播算法。官方pdf中显然也是非常不放心将步骤这么多的一个算法交给我们这些小朋友，所以步骤都给清楚了，而我在做的时候，也是老老实实重新看了一边视频，将重点重新复习了一下才开始动笔写的。好了严格按照步骤写就好。</p>
+<p><strong>step 1</strong><br>求a1，我们知道a1就是X中某一个样本特征，但是记得加上bias。由于要算偏差值和delta，所以需要再进行一边前向传播，分别算出a2，a3，z2，z3。</p>
+<p><strong>step 2</strong><br>算偏差值，err3单独算，然后按照给的公式一步一步算出err2就好。这里给出err2的计算式子。</p>
+<pre><code>err_2 = (Theta2&apos; * err_3);
+err_2 = err_2(2:end) .* sigmoidGradient(z_2);
+</code></pre><p>这里切记切记，z2是25 × 1，而err2是26 × 1，需要将bias干掉再算，当然如果在写代码的时候时刻记着现在矩阵计算的行和列，那就不会像我一样犯错误了。</p>
+<p><strong>step 3</strong><br>计算delta1和delta2。按照公式计算即可。</p>
+<pre><code>delta_2 = delta_2 + (err_3)*a_2&apos;;
+delta_1 = delta_1 + (err_2)*a_1&apos;;
+</code></pre><p><strong>step 4</strong><br>计算两个梯度导数，还是一样按照公式计算即可。</p>
+<pre><code>Theta1_grad = 1 / m * delta_1 + lambda / m * theta1_tmp;
+Theta2_grad = 1 / m * delta_2 + lambda / m * theta2_tmp;
+</code></pre><p>其实按照步骤分解，每一步视频都讲的挺清楚，注意代码编写正确即可。</p>
+<p>之后官方已经给了校验算法，自己跑一遍ex4就行。</p>
+<h3 id="4-3-关于隐藏层的可视化"><a href="#4-3-关于隐藏层的可视化" class="headerlink" title="4.3 关于隐藏层的可视化"></a>4.3 关于隐藏层的可视化</h3><p>这个额外的实验就一个问题：隐藏层究竟代表了什么？<br>其实咱们小时候学习的时候也是这样，学写字，大概长这个样子就是什么字儿，大概是这个样子是什么句子（还记得那个文字顺序一点儿都不影响阅读么？）。原来在看名家在争论白马非马的时候就跟着思考过这个概念，就是<strong>大概长这个样子</strong>用不是人话描述就叫模型，所谓马为天下之马而白马就这一匹而已。之所以这个算法叫神经网络算法，其实也是这样，每一个中间层可能就是对某一类事物的模型，每层递进的过程中都在一点儿一点儿完善这个模型。</p>
+<p><a name="ex5"></a></p>
+<h2 id="实验五-线性回归与修正过拟合与欠拟合"><a href="#实验五-线性回归与修正过拟合与欠拟合" class="headerlink" title="实验五 线性回归与修正过拟合与欠拟合"></a>实验五 线性回归与修正过拟合与欠拟合</h2><p>这个实验包含了三个实验，一个是通过学习选取比较好的线性回归模型，一个是通过观察学习曲线来修正过拟合与欠拟合，另一个是通过学习选取多项式特征模型，通过学习，选取表现较好的。</p>
+<h3 id="5-1-实现线性拟合"><a href="#5-1-实现线性拟合" class="headerlink" title="5.1 实现线性拟合"></a>5.1 实现线性拟合</h3><p>就是回顾之前的线性拟合的各种算法。按照pdf上写的CostFunction和梯度选择的公式写就行了。</p>
+<h3 id="5-2-学习曲线"><a href="#5-2-学习曲线" class="headerlink" title="5.2 学习曲线"></a>5.2 学习曲线</h3><p>分别计算训练组和交叉验证组的误差。为了获得不同的训练组集合，这里只是要求大小不同，所以这里使用了循环来依次改变训练组集合的大小，而交叉验证组单独给出。<br>这里使用trainLinearReg函数得出theta，然后使用上个实验写好的linearRegCostFunction函数求出各个误差，这里lambda为0。<br>从得出的训练集的大小与误差的曲线图来看，上个实验得出的线性拟合模型工作的很不错。在下一个实验就会给出使用多项式系数继续进行拟合的方法，通常来说那样做会拟合的更好。</p>
+<h3 id="5-3-使用多项式系数拟合"><a href="#5-3-使用多项式系数拟合" class="headerlink" title="5.3 使用多项式系数拟合"></a>5.3 使用多项式系数拟合</h3><p>如何表示多项式系数是一个问题，这里先预处理，算出所有可能的x的次方，算出的X_poly是一个m×p的矩阵，这个矩阵每一列都是一个x的次方，从x的1次方到x的p次方。在polyFeatures.m中进行计算就好。很简单。<br>然后次方数p根据学习选择之后，最后一个问题就是确定lambda。同样如何确定lambda呢？这里还是采用的循环的方式，题目提供了一个lambda可能的集合：{0, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 1, 3, 10}。可以看到，这就是原来讲过的lambda取值的方式，ng经常这样取，然后根据训练集与交叉验证集的方式选择出比较恰当的lambda。</p>
+<h3 id="5-4-之后的事情"><a href="#5-4-之后的事情" class="headerlink" title="5.4 之后的事情"></a>5.4 之后的事情</h3><p><strong>事情远没有结束。</strong><br>首先要使用剩下的测试集来验证lambda是否选择适当。而test就是做这个事情的。<br>而前面选择训练集的时候，并没有做随机化，是依次从前多少个中取得的训练集，这样做会使得学习的结果更加局部化，只是满足局部的训练集，所以这里应该是随机化选择训练集。不过也可以理解，如果是随机化选择训练集，那么结果就没办法评分了。但是这儿还是应该随机化选择的。</p>
+<p><a name="ex6"></a></p>
+<h2 id="实验六-支持向量机"><a href="#实验六-支持向量机" class="headerlink" title="实验六 支持向量机"></a>实验六 支持向量机</h2><p>这个实验一共包含了两个实验，一个是支持向量机的实验，包含了三个dataset，第一个是线性的后两个个是非线性的。第二个实验是在垃圾邮件分类方面应用支持向量机进行计算。</p>
+<h3 id="6-1-高斯核函数"><a href="#6-1-高斯核函数" class="headerlink" title="6.1 高斯核函数"></a>6.1 高斯核函数</h3><p>实现高斯核函数，计算某点和l之间距离的时候可以通过向量进行快速计算。</p>
+<h3 id="6-2-确定两个常数"><a href="#6-2-确定两个常数" class="headerlink" title="6.2 确定两个常数"></a>6.2 确定两个常数</h3><p>确定C与sigma这两个在高斯核函数中的常数。通过使用支持向量机进行训练，并对交叉验证组进行验证，在一定范围内选出比较合适的C和sigma即可。<br>首先，C和sigma的范围怎么算，这里提示说仍然使用从0.01依次乘以3进行选取，所以为了程序好写，则需要将可能的C和sigma放在向量中。然后就对不同的C和sigma进行排列组合，训练之后算出交叉验证组的值，选择误差最小的。<br>Octave里面有svm相关的函数，但是pdf中稍微提了一句，并没有告诉具体的用法，我也是在ex6中找到的，然后查了查资料，然后把这个函数写出来了，如下所示：</p>
+<pre><code>model = svmTrain(X, y, C_vec(i), @(x1, x2) gaussianKernel(x1, x2, sigma_vec(j)));
+</code></pre><p>这中间C_vec和sigma_vec两个向量就是C和sigma的取值范围。<br>算出model之后，需要利用model对交叉验证组进行对照，然后算出误差。这里不再贴代码。<br>之后选择误差最小的即可。其中可能要用到ind2sub函数，可以自行百度。</p>
+<h3 id="6-3-垃圾邮件分类"><a href="#6-3-垃圾邮件分类" class="headerlink" title="6.3 垃圾邮件分类"></a>6.3 垃圾邮件分类</h3><p>实验已经对邮件的预处理，可以看看中间都有什么处理，思路还是很重要的，但是这里主要讲实验。<br>不过其实实验也没啥讲的，在预处理之后，需要完成的就是对单个单词的比对，而且敏感词表也已经给了，如果存在这个敏感词则在一个很长很长的向量中标注一下即可。<br>然后万事俱备，（纳尼，我啥都没干呢！）就可以使用svm算法对垃圾邮件进行分类了。<br>之后给的两个附加实验倒是稍微有意思一点，一个就是用现有的model测试自己的邮件，第二个就更彻底一点儿，从SpamAssassin Public Corpus上面下到一些可以作为实验数据的东西，然后自己重新组织程序，通过processEmail和emailFeatures两个函数获得自己的X和y，然后进行训练。记得把实验数据分成训练组、交叉验证组和测试组。</p>
+<p><a name="ex7"></a></p>
+<h2 id="实验七-K均值算法与PCA"><a href="#实验七-K均值算法与PCA" class="headerlink" title="实验七 K均值算法与PCA"></a>实验七 K均值算法与PCA</h2><p>本次实验肯定分为两部分，一部分K均值，一部分是PCA。而K均值的实验中，一部分是有一个可以可视化的数据，可以追踪聚类中心的移动情况，另一部分就是使用K均值对图像进行压缩。而PCA则是一次普通的实验。</p>
+<h3 id="7-1-K均值的实现"><a href="#7-1-K均值的实现" class="headerlink" title="7.1 K均值的实现"></a>7.1 K均值的实现</h3><p>K均值一共需要迭代的步骤是两步，第一步是给每个点找到距离最近的聚类中心，第二步是计算每个聚类的平均值并以此更新聚类中心。<br>找到最近的聚类中心，无非是把所有的点枚举一遍，然后计算每个点到所有聚类中心的距离，挑出最小的，将每个点的聚类索引更新，这个过程如果用矩阵去写会非常好写。关键步骤如下：</p>
+<pre><code>tmp(j) = sum((centroids(j,:)- X(i,:)).^2);
+</code></pre><p>其中i是枚举点的循环变量，j是枚举聚类中心的循环变量。利用矩阵将距离计算出来。</p>
+<p>第二步流程更为简单，将每个聚类中的所有点算出均值即可。由于已经有了idx，表示每个点所属的聚类中心，那么利用find函数首先找到属于同一聚类中心的点，然后进行均值求解即可。关键步骤如下：</p>
+<pre><code>centroids(i,:) = mean(X(find(idx==i),:));
+</code></pre><h3 id="7-2-随机初始化与利用K均值算法压缩图像"><a href="#7-2-随机初始化与利用K均值算法压缩图像" class="headerlink" title="7.2 随机初始化与利用K均值算法压缩图像"></a>7.2 随机初始化与利用K均值算法压缩图像</h3><p>这一节虽然没有需要提交的代码，但是这儿提供了一个随机初始化的方法，和将图像压缩的方法，可以应用在别的项目中。</p>
+<h3 id="7-3-PCA"><a href="#7-3-PCA" class="headerlink" title="7.3 PCA"></a>7.3 PCA</h3><p>这一节课上老师讲的特别清楚，包括怎么算，为什么这么算，还有在octave中有什么函数方便算。比如求PCA的函数，先选出sigma，然后用svd函数算出U，S，V。其中，U，S在课上讲过用处，U就是矩阵的特征向量，S可以用来选取K。选出矩阵U之后，就可以按照K进行映射了，进行一次矩阵乘法即可。恢复数据是一样的，这个实验主要还是用来熟悉流程，看到一个一个例子在机器上运行，感觉很踏实就好。</p>
+<h3 id="7-4-PCA应用"><a href="#7-4-PCA应用" class="headerlink" title="7.4 PCA应用"></a>7.4 PCA应用</h3><p>之后给了两个应用PCA的例子，一个是脸部的特征的降维，从1024维降到100维。第二个实验是利用PCA进行可视化，将3维的降到2维的。有兴趣可以看看代码，因为这个代码的基础部件还是咱们自己写的。</p>
+<p><a name="ex8"></a></p>
+<h2 id="实验八-异常检测与推荐系统"><a href="#实验八-异常检测与推荐系统" class="headerlink" title="实验八 异常检测与推荐系统"></a>实验八 异常检测与推荐系统</h2><p>本次实验包括了两个系统，异常检测和一个电影推荐系统。还是老样子，每个系统都被拆成若干步骤，按照递归的方法递归到最先要解决的问题，然后依次递推回来，拆分了这个实验，这种将大目标拆成小目标的方法还是非常的规矩。相信到了这里，每个人都很熟悉，就简单写了。</p>
+<h3 id="8-1-计算高斯分布的参数"><a href="#8-1-计算高斯分布的参数" class="headerlink" title="8.1 计算高斯分布的参数"></a>8.1 计算高斯分布的参数</h3><p>这儿我突然脑子短路了，本来列是特征的个数，行是训练集，我活生生弄反了。本身没多大难度，按照公式写就好了，相信之前写CostFunction的人在这儿都会开开心心的顺手写完了。</p>
+<h3 id="8-2-选择epsilon、计算F1的值"><a href="#8-2-选择epsilon、计算F1的值" class="headerlink" title="8.2 选择epsilon、计算F1的值"></a>8.2 选择epsilon、计算F1的值</h3><p>乍一看好像要算的很多，但是都是互相依赖的关系，算F1，就要算测准率和召回率，算这俩率就要把TruePositive等等那四个全算出来，而算这几个就要知道预测值和真实值的对比，真实值就是yval，而预测值的p函数已经给你了，那事儿就简单了。利用p函数和epsilon的大小关系算出预测值，然后算出TP、FP、FN，然后算出测准率和召回率，然后算出F1，然后挑出最大的F1，over。<br>说起来复杂，但是中间连个弯儿都不带拐的。<br>代码就不给了。</p>
+<h3 id="8-3-推荐系统"><a href="#8-3-推荐系统" class="headerlink" title="8.3 推荐系统"></a>8.3 推荐系统</h3><p>如果单单是为了做实验，这个实验非常没啥做的，线性回归什么样儿，这儿基本就是什么样儿，除了要对阵矩阵的行列值。但是按照课上讲的顺序，回顾一下整个推荐系统的实现顺序其实是很有用的，看看提供的代码，想想流程。再看看人家给的代码单元测试做的多好，所以说<strong>写程序之前先写单元测试是个好习惯</strong>。</p>
+<h2 id="更新历史"><a href="#更新历史" class="headerlink" title="更新历史"></a>更新历史</h2><p>实验一更新（2015.05.14 21：28）<br>实验二更新（2015.05.20 09：50）<br>实验三更新（2015.05.27 09：23）<br>实验四更新（2015.06.09 09：09）<br>实验五更新（2015.06.29 09：17）<br>实验六更新（2015.07.11 15：17）<br>实验七更新（2015.07.12 12：52）<br>实验八更新（2015.07.17 20：45）  </p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;a href=&quot;#ex1&quot;&gt;实验一：线性回归&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex2&quot;&gt;实验二：逻辑回归&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex3&quot;&gt;实验三：神经网络&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex4&quot;&gt;实验四：神经网络反向传播算法&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex5&quot;&gt;实验五：线性回归和修正欠拟合与过拟合&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex6&quot;&gt;实验六：支持向量机&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex7&quot;&gt;实验七：K-均值算法与PCA算法&lt;/a&gt;&lt;br&gt;&lt;a href=&quot;#ex8&quot;&gt;实验八：异常检测和推荐系统&lt;/a&gt;  &lt;/p&gt;
+    
+    </summary>
+    
+      <category term="机器学习" scheme="http://yoursite.com/categories/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>你好，旅行者～</title>
+    <link href="http://yoursite.com/2015/05/12/2015-05-12-hello/"/>
+    <id>http://yoursite.com/2015/05/12/2015-05-12-hello/</id>
+    <published>2015-05-11T16:00:00.000Z</published>
+    <updated>2016-09-28T01:41:06.152Z</updated>
+    
+    <content type="html"><![CDATA[<p>原本打算把之前进行的论文阅读报告记录一下，然而由于<strong>不可抗力</strong>的原因，最终在github上搭了个博客来完成原来的目标。总之，尽量保持更新。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;原本打算把之前进行的论文阅读报告记录一下，然而由于&lt;strong&gt;不可抗力&lt;/strong&gt;的原因，最终在github上搭了个博客来完成原来的目标。总之，尽量保持更新。&lt;/p&gt;
+
+    
+    </summary>
+    
+      <category term="开始" scheme="http://yoursite.com/categories/%E5%BC%80%E5%A7%8B/"/>
+    
+    
+  </entry>
+  
+</feed>
